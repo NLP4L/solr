@@ -16,6 +16,7 @@
 
 package org.nlp4l.solr.servlet;
 
+import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 import javax.servlet.ServletInputStream;
 import javax.servlet.http.HttpServlet;
@@ -27,6 +28,19 @@ import java.io.IOException;
 
 public class FileReceiver extends HttpServlet {
 
+  private static final String ROOT_PATH_PARAM = "root_path";
+  private String rootPath = null;
+
+  @Override
+  public void init() throws ServletException {
+    super.init();
+    ServletConfig config = getServletConfig();
+    String rootPath = config.getInitParameter(ROOT_PATH_PARAM);
+    if (rootPath != null && !rootPath.equals("")) {
+      this.rootPath = rootPath;
+    }
+  }
+
   @Override
   public void doPut(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
     String file = req.getParameter("file");
@@ -34,7 +48,12 @@ public class FileReceiver extends HttpServlet {
       res.sendError(HttpServletResponse.SC_BAD_REQUEST, "file parameter is not specified");
       return;
     }
-    File f = new File(file).getAbsoluteFile();
+    if (rootPath == null) {
+      res.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "root path is not specified in server configuration");
+      return;
+    }
+
+    File f = new File(rootPath, file).getAbsoluteFile();
     File parent = f.getParentFile();
     if(!parent.exists()){
       System.out.printf("*** directory '%s' doesn't exist\n", parent);

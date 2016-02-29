@@ -21,6 +21,10 @@ In addition, the fileReceiver servlet needs to be registered in web.xml.
   <servlet>
     <servlet-name>fileReceiver</servlet-name>
     <servlet-class>org.nlp4l.solr.servlet.FileReceiver</servlet-class>
+    <init-param>
+      <param-name>root_path</param-name>
+      <param-value>/path/to/solr_core</param-value>
+    </init-param>
   </servlet>
 
   <servlet-mapping>
