@@ -32,3 +32,40 @@ In addition, the fileReceiver servlet needs to be registered in web.xml.
     <url-pattern>/nlp4l/receive/file</url-pattern>
   </servlet-mapping>
 ```
+
+# How to deploy FeaturesRequestHandler
+
+Copy the project jar file to the lib directory of Solr core directory, e.g. ${solr.solr.home}/collection1/lib/.
+
+```
+$ cp target/nlp4l-solr-VERSION.jar ${solr.solr.home}/collection1/lib
+```
+
+In addition, FeaturesRequestHandler needs to be registered in solrconfig.xml.
+
+```
+<requestHandler name="/features" class="org.nlp4l.solr.ltr.FeaturesRequestHandler" startup="lazy">
+  <lst name="defaults">
+    <str name="conf">ltr_features.json</str>
+  </lst>
+</requestHandler>
+```
+
+Where, ltr_features.json is provided in the same directory as the directory where solrconfig.xml exists and has the structure of this file looks like below:
+
+```
+{
+  features: [
+    {
+      name: "isBook",
+      type: "org.nlp4l.solr.ltr.SolrFeature",
+      params: { "fq": ["{!terms f=category}book"] }
+    },
+    {
+      name: "TF feature",
+      type: "org.nlp4l.solr.ltr.TFFeature",
+      params: "dummy"
+    }
+  ]
+}
+```
