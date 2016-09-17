@@ -50,6 +50,8 @@ public class FeaturesRequestHandler extends RequestHandlerBase {
   static final int[] NEXT_STATE_ETCKEY =       {-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 11, -1, -1, -1, -1};
   static final int[] NEXT_STATE_VALUE =        {-1, -1, -1, -1, -1,  6, -1,  8, -1, 13, -1, 10, 12, -1, -1};
 
+  List<FeaturesExtractor> extManager = new ArrayList<FeaturesExtractor>();
+
   /*
    * available commands:
    *   - /features?command=list&conf=<json config file name>
@@ -71,10 +73,17 @@ public class FeaturesRequestHandler extends RequestHandlerBase {
       results.add("features", features);
     }
     else if(command.equals("extract")){
-
+      FeaturesExtractor extractor = new FeaturesExtractor();
+      int procId = addFeaturesExtractor(extractor);
+      extractor.start();
+      results.add("procId", procId);
+      results.add("progress", extractor.reportProgress());
     }
     else if(command.equals("progress")){
-
+      int procId = req.getParams().required().getInt("id");
+      FeaturesExtractor extractor = getFeaturesExtractor(procId);
+      results.add("procId", procId);
+      results.add("progress", extractor.reportProgress());
     }
     else{
       throw new SolrException(SolrException.ErrorCode.BAD_REQUEST, "unknown command " + command);
@@ -237,5 +246,18 @@ public class FeaturesRequestHandler extends RequestHandlerBase {
     String fType;
     String param;
     List<LtrFeatureParam> params;
+  }
+
+  public synchronized int addFeaturesExtractor(FeaturesExtractor extractor){
+    extManager.add(extractor);
+    return extManager.size();
+  }
+
+  public synchronized FeaturesExtractor getFeaturesExtractor(int procId) throws Exception {
+    if(extManager.size() < procId)
+      throw new SolrException(SolrException.ErrorCode.BAD_REQUEST, "there is no such features extraction process. procId=" + procId);
+    else{
+      return extManager.get(procId - 1);
+    }
   }
 }
