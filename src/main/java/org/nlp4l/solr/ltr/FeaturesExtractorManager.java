@@ -27,8 +27,8 @@ public class FeaturesExtractorManager {
   private final ExecutorService executor;
   private final Future<Integer> future;
 
-  public FeaturesExtractorManager(List<LtrFeatureSetting> settings){
-    extractor = new FeaturesExtractor(settings);
+  public FeaturesExtractorManager(List<LtrFeatureSetting> settings, String json){
+    extractor = new FeaturesExtractor(settings, json);
     executor = Executors.newSingleThreadExecutor();
     future = executor.submit(extractor);
     executor.shutdown();

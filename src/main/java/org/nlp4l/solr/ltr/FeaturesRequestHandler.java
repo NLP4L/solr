@@ -16,7 +16,9 @@
 
 package org.nlp4l.solr.ltr;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.solr.common.SolrException;
+import org.apache.solr.common.util.ContentStream;
 import org.apache.solr.common.util.SimpleOrderedMap;
 import org.apache.solr.core.SolrResourceLoader;
 import org.apache.solr.handler.RequestHandlerBase;
@@ -69,7 +71,20 @@ public class FeaturesRequestHandler extends RequestHandlerBase {
 
     if(command.equals("extract")){
       List<LtrFeatureSetting> settings = loadFeatureSettings(loadConfig(req));
-      long procId = startExtractor(settings);
+      if(req.getContentStreams() == null){
+        throw new SolrException(SolrException.ErrorCode.BAD_REQUEST, "no queries found");
+      }
+      StringBuilder queries = new StringBuilder();
+      for(ContentStream cs: req.getContentStreams()){
+        Reader reader = cs.getReader();
+        try{
+          queries.append(IOUtils.toString(reader));
+        }
+        finally{
+          IOUtils.closeQuietly(reader);
+        }
+      }
+      long procId = startExtractor(settings, queries.toString());
       FeaturesExtractorManager manager = getManager(procId);
       results.add("procId", procId);
       results.add("progress", manager.getProgress());
@@ -244,11 +259,11 @@ public class FeaturesRequestHandler extends RequestHandlerBase {
     return "Feature extraction for NLP4L-LTR";
   }
 
-  public long startExtractor(List<LtrFeatureSetting> settings){
+  public long startExtractor(List<LtrFeatureSetting> settings, String json){
     // use current server time as the procId
     long procId = System.currentTimeMillis();
 
-    FeaturesExtractorManager manager = new FeaturesExtractorManager(settings);
+    FeaturesExtractorManager manager = new FeaturesExtractorManager(settings, json);
     synchronized(manager) {
       managers.put(procId, manager);
     }
