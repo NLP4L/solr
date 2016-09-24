@@ -40,7 +40,7 @@ public class FeaturesRequestHandlerTest extends SolrTestCaseJ4 {
             "  ]\n" +
             "}";
 
-    List<FeaturesRequestHandler.LtrFeatureSetting> settings = FeaturesRequestHandler.loadFeatureSettings(CONF_JSON);
+    List<LtrFeatureSetting> settings = FeaturesRequestHandler.loadFeatureSettings(CONF_JSON);
 
     assertEquals(2, settings.size());
 
@@ -48,7 +48,7 @@ public class FeaturesRequestHandlerTest extends SolrTestCaseJ4 {
     assertEquals("org.nlp4l.solr.ltr.SolrFeature", settings.get(0).fType);
     assertNull(settings.get(0).param);
     assertNotNull(settings.get(0).params);
-    List<FeaturesRequestHandler.LtrFeatureParam> params = settings.get(0).params;
+    List<LtrFeatureParam> params = settings.get(0).params;
     assertEquals(1, params.size());
     assertEquals("fq", params.get(0).name);
     assertNull(params.get(0).value);
@@ -74,7 +74,7 @@ public class FeaturesRequestHandlerTest extends SolrTestCaseJ4 {
             "  ]\n" +
             "}";
 
-    List<FeaturesRequestHandler.LtrFeatureSetting> settings = FeaturesRequestHandler.loadFeatureSettings(CONF_JSON);
+    List<LtrFeatureSetting> settings = FeaturesRequestHandler.loadFeatureSettings(CONF_JSON);
 
     assertEquals(1, settings.size());
 

@@ -16,15 +16,21 @@
 
 package org.nlp4l.solr.ltr;
 
+import java.util.List;
 import java.util.Random;
+import java.util.concurrent.Callable;
 
-public class FeaturesExtractor extends Thread {
+public class FeaturesExtractor implements Callable<Integer> {
 
   private int progress = 0;
   Random r = new Random();
 
+  public FeaturesExtractor(List<LtrFeatureSetting> settings){
+
+  }
+
   @Override
-  public void run() {
+  public Integer call() {
     while(progress < 100){
       incProgress();
       try {
@@ -32,6 +38,7 @@ public class FeaturesExtractor extends Thread {
       } catch (InterruptedException ignored) {
       }
     }
+    return progress;
   }
 
   public int reportProgress(){
