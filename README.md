@@ -69,3 +69,9 @@ Where, ltr_features.json is provided in the same directory as the directory wher
   ]
 }
 ```
+
+## test features extractor using curl
+
+```
+$ curl -X POST -H "Content-type: text/json" -d @examples/ltr-queries.json "http://localhost:8983/solr/collection1/features?command=extract"
+```

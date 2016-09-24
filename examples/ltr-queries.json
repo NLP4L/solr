@@ -1,0 +1,52 @@
+{
+  queries: [
+    {
+      qid: 101,
+      query: "サラリーマン",
+      docs: [
+        "http://news.livedoor.com/article/detail/5667825/",
+        "http://news.livedoor.com/article/detail/4916133/",
+        "http://news.livedoor.com/article/detail/5962222/",
+        "http://news.livedoor.com/article/detail/5332120/",
+        "http://news.livedoor.com/article/detail/6395403/",
+        "http://news.livedoor.com/article/detail/4567316/",
+        "http://news.livedoor.com/article/detail/6745318/",
+        "http://news.livedoor.com/article/detail/4869168/",
+        "http://news.livedoor.com/article/detail/6480810/",
+        "http://news.livedoor.com/article/detail/6148384/"
+      ]
+    },
+    {
+      qid: 102,
+      query: "携帯電話",
+      docs: [
+        "http://news.livedoor.com/article/detail/6895739/",
+        "http://news.livedoor.com/article/detail/5560837/",
+        "http://news.livedoor.com/article/detail/5215801/",
+        "http://news.livedoor.com/article/detail/5151538/",
+        "http://news.livedoor.com/article/detail/5866975/",
+        "http://news.livedoor.com/article/detail/6128167/",
+        "http://news.livedoor.com/article/detail/5860708/",
+        "http://news.livedoor.com/article/detail/6725617/",
+        "http://news.livedoor.com/article/detail/6064299/",
+        "http://news.livedoor.com/article/detail/6521195/"
+      ]
+    },
+    {
+      qid: 103,
+      query: "ラーメン",
+      docs: [
+        "http://news.livedoor.com/article/detail/5911453/",
+        "http://news.livedoor.com/article/detail/6514350/",
+        "http://news.livedoor.com/article/detail/6396990/",
+        "http://news.livedoor.com/article/detail/5910461/",
+        "http://news.livedoor.com/article/detail/4546671/",
+        "http://news.livedoor.com/article/detail/6389405/",
+        "http://news.livedoor.com/article/detail/6573929/",
+        "http://news.livedoor.com/article/detail/6617251/",
+        "http://news.livedoor.com/article/detail/5756799/",
+        "http://news.livedoor.com/article/detail/4990324/"
+      ]
+    },
+  ]
+}

@@ -25,8 +25,11 @@ public class FeaturesExtractor implements Callable<Integer> {
   private int progress = 0;
   Random r = new Random();
 
-  public FeaturesExtractor(List<LtrFeatureSetting> settings){
+  private final List<LtrFeatureSetting> settings;
 
+  public FeaturesExtractor(List<LtrFeatureSetting> settings, String json){
+    this.settings = settings;
+    System.out.println(json);
   }
 
   @Override
