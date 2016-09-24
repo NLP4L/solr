@@ -32,7 +32,9 @@ import java.io.Reader;
 import java.io.StringReader;
 import java.lang.invoke.MethodHandles;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class FeaturesRequestHandler extends RequestHandlerBase {
 
@@ -50,13 +52,14 @@ public class FeaturesRequestHandler extends RequestHandlerBase {
   static final int[] NEXT_STATE_ETCKEY =       {-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 11, -1, -1, -1, -1};
   static final int[] NEXT_STATE_VALUE =        {-1, -1, -1, -1, -1,  6, -1,  8, -1, 13, -1, 10, 12, -1, -1};
 
-  List<FeaturesExtractor> extManager = new ArrayList<FeaturesExtractor>();
+  Map<Long, FeaturesExtractorManager> managers = new HashMap<Long, FeaturesExtractorManager>();
 
   /*
    * available commands:
-   *   - /features?command=list&conf=<json config file name>
-   *   - /features?command=extract&features=<comma separated feature names>&conf=<json config file name> (async, returns procId)
+   *   - /features?command=extract&conf=<json config file name> (async, returns procId)
    *   - /features?command=progress&id=<procId>
+   *   - /features?command=download&id=<procId>
+   *   - /features?command=delete&id=<procId>
    */
   @Override
   public void handleRequestBody(SolrQueryRequest req, SolrQueryResponse rsp) throws Exception {
@@ -64,26 +67,32 @@ public class FeaturesRequestHandler extends RequestHandlerBase {
     String command = req.getParams().required().get("command");
     results.add("command", command);
 
-    if(command.equals("list")){
+    if(command.equals("extract")){
       List<LtrFeatureSetting> settings = loadFeatureSettings(loadConfig(req));
-      SimpleOrderedMap<Object> features = new SimpleOrderedMap<Object>();
-      for(LtrFeatureSetting setting: settings){
-        features.add("feature", setting.name);
-      }
-      results.add("features", features);
-    }
-    else if(command.equals("extract")){
-      FeaturesExtractor extractor = new FeaturesExtractor();
-      int procId = addFeaturesExtractor(extractor);
-      extractor.start();
+      long procId = startExtractor(settings);
+      FeaturesExtractorManager manager = getManager(procId);
       results.add("procId", procId);
-      results.add("progress", extractor.reportProgress());
+      results.add("progress", manager.getProgress());
     }
     else if(command.equals("progress")){
-      int procId = req.getParams().required().getInt("id");
-      FeaturesExtractor extractor = getFeaturesExtractor(procId);
+      long procId = req.getParams().required().getLong("id");
+      FeaturesExtractorManager manager = getManager(procId);
       results.add("procId", procId);
-      results.add("progress", extractor.reportProgress());
+      results.add("progress", manager.getProgress());
+    }
+    else if(command.equals("download")){
+      long procId = req.getParams().required().getLong("id");
+      FeaturesExtractorManager manager = getManager(procId);
+      results.add("procId", procId);
+      // TODO
+      results.add("progress", manager.getProgress());
+    }
+    else if(command.equals("delete")){
+      long procId = req.getParams().required().getLong("id");
+      FeaturesExtractorManager manager = getManager(procId);
+      results.add("procId", procId);
+      // TODO
+      results.add("progress", manager.getProgress());
     }
     else{
       throw new SolrException(SolrException.ErrorCode.BAD_REQUEST, "unknown command " + command);
@@ -235,29 +244,28 @@ public class FeaturesRequestHandler extends RequestHandlerBase {
     return "Feature extraction for NLP4L-LTR";
   }
 
-  public static class LtrFeatureParam {
-    String name;
-    String value;
-    List<String> values;
+  public long startExtractor(List<LtrFeatureSetting> settings){
+    // use current server time as the procId
+    long procId = System.currentTimeMillis();
+
+    FeaturesExtractorManager manager = new FeaturesExtractorManager(settings);
+    synchronized(manager) {
+      managers.put(procId, manager);
+    }
+
+    return procId;
   }
 
-  public static class LtrFeatureSetting {
-    String name;
-    String fType;
-    String param;
-    List<LtrFeatureParam> params;
-  }
-
-  public synchronized int addFeaturesExtractor(FeaturesExtractor extractor){
-    extManager.add(extractor);
-    return extManager.size();
-  }
-
-  public synchronized FeaturesExtractor getFeaturesExtractor(int procId) throws Exception {
-    if(extManager.size() < procId)
-      throw new SolrException(SolrException.ErrorCode.BAD_REQUEST, "there is no such features extraction process. procId=" + procId);
+  public FeaturesExtractorManager getManager(long procId){
+    FeaturesExtractorManager manager = null;
+    synchronized (managers){
+      manager = managers.get(procId);
+    }
+    if(manager == null){
+      throw new SolrException(SolrException.ErrorCode.BAD_REQUEST, String.format("no such process (id=%d)", procId));
+    }
     else{
-      return extManager.get(procId - 1);
+      return manager;
     }
   }
 }
