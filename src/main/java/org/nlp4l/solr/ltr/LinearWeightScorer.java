@@ -47,7 +47,6 @@ public class LinearWeightScorer extends Scorer {
 
   @Override
   public float score() throws IOException {
-    // 現在の docID() に関して w1*x1 + w2*x2 + ... + wd*xd を計算して返す。
     final int target = docID();
     float score = 0;
     int idx = 0;
@@ -67,7 +66,6 @@ public class LinearWeightScorer extends Scorer {
   @Override
   public int freq() throws IOException {
     // TODO: implement
-    // 主にexplain()で利用？
     return 1;
   }
 
