@@ -29,8 +29,8 @@ public class FieldFeatureIDFExtractor implements FieldFeatureExtractor {
   public FieldFeatureIDFExtractor(int numDocs, int docFreq){
     assert numDocs >= docFreq;
     this.numDocs = numDocs;
-    this.docFreq = docFreq;
-    idf = (float)Math.log((double)numDocs/(double)docFreq);
+    this.docFreq = docFreq <= 0 ? 1 : docFreq;
+    idf = (float)Math.log((double)numDocs/(double)this.docFreq);
   }
 
   @Override

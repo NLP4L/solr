@@ -16,7 +16,6 @@
 
 package org.nlp4l.solr.ltr;
 
-import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -27,8 +26,8 @@ public class FeaturesExtractorManager {
   private final ExecutorService executor;
   private final Future<Integer> future;
 
-  public FeaturesExtractorManager(List<LtrFeatureSetting> settings, String json){
-    extractor = new FeaturesExtractor(settings, json);
+  public FeaturesExtractorManager(FeaturesConfigReader.FeatureDesc[] featuresSpec, String json){
+    extractor = new FeaturesExtractor(featuresSpec, json);
     executor = Executors.newSingleThreadExecutor();
     future = executor.submit(extractor);
     executor.shutdown();

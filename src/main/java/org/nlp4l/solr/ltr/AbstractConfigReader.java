@@ -29,8 +29,8 @@ public abstract class AbstractConfigReader {
 
   protected final Config config;
 
-  public AbstractConfigReader(String fileName, String rootName){
-    Config c = load(null, fileName);
+  public AbstractConfigReader(SolrResourceLoader loader, String fileName, String rootName){
+    Config c = load(loader, fileName);
     config = c.getConfig(rootName);
   }
 

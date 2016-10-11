@@ -16,7 +16,6 @@
 
 package org.nlp4l.solr.ltr;
 
-import java.util.List;
 import java.util.Random;
 import java.util.concurrent.Callable;
 
@@ -25,10 +24,10 @@ public class FeaturesExtractor implements Callable<Integer> {
   private int progress = 0;
   Random r = new Random();
 
-  private final List<LtrFeatureSetting> settings;
+  private final FeaturesConfigReader.FeatureDesc[] featuresSpec;
 
-  public FeaturesExtractor(List<LtrFeatureSetting> settings, String json){
-    this.settings = settings;
+  public FeaturesExtractor(FeaturesConfigReader.FeatureDesc[] featuresSpec, String json){
+    this.featuresSpec = featuresSpec;
     System.out.println(json);
   }
 

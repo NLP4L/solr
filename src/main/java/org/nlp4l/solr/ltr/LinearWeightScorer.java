@@ -41,7 +41,6 @@ public class LinearWeightScorer extends Scorer {
 
   @Override
   public int docID() {
-    // TODO: implement
     return iterator.docID();
   }
 

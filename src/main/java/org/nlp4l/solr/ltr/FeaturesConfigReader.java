@@ -17,6 +17,7 @@
 package org.nlp4l.solr.ltr;
 
 import com.typesafe.config.Config;
+import org.apache.solr.core.SolrResourceLoader;
 
 import java.util.HashMap;
 import java.util.List;
@@ -28,7 +29,11 @@ public class FeaturesConfigReader extends  AbstractConfigReader {
   private final Map<String, FeatureDesc> fdMap;
 
   public FeaturesConfigReader(String fileName){
-    super(fileName, "conf");
+    this(null, fileName);
+  }
+
+  public FeaturesConfigReader(SolrResourceLoader loader, String fileName){
+    super(loader, fileName, "conf");
     List<? extends Config> featuresConfig = config.getConfigList("features");
     featureDescs = new FeatureDesc[featuresConfig.size()];
     fdMap = new HashMap<String, FeatureDesc>();

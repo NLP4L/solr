@@ -17,6 +17,7 @@
 package org.nlp4l.solr.ltr;
 
 import com.typesafe.config.Config;
+import org.apache.solr.core.SolrResourceLoader;
 
 import java.util.List;
 
@@ -25,7 +26,11 @@ public class ModelConfigReader extends AbstractConfigReader {
   private final WeightDesc[] weightDescs;
 
   public ModelConfigReader(String fileName){
-    super(fileName, "model");
+    this(null, fileName);
+  }
+
+  public ModelConfigReader(SolrResourceLoader loader, String fileName){
+    super(loader, fileName, "model");
     List<? extends Config> weightsConfig = config.getConfigList("weights");
     weightDescs = new WeightDesc[weightsConfig.size()];
     int i = 0;
