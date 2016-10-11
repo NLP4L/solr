@@ -16,15 +16,19 @@
 
 package org.nlp4l.solr.ltr;
 
+import org.apache.lucene.index.PostingsEnum;
+
 import java.io.IOException;
 
-public class FieldFeatureIDFExtractor implements FieldFeatureExtractor {
+public class FieldFeatureTFIDFExtractor implements FieldFeatureExtractor {
 
+  private final PostingsEnum pe;
   private final int numDocs;
   private final int docFreq;
   private final float idf;
 
-  public FieldFeatureIDFExtractor(int numDocs, int docFreq){
+  public FieldFeatureTFIDFExtractor(PostingsEnum pe, int numDocs, int docFreq){
+    this.pe = pe;
     assert numDocs >= docFreq;
     this.numDocs = numDocs;
     this.docFreq = docFreq <= 0 ? 1 : docFreq;
@@ -32,7 +36,16 @@ public class FieldFeatureIDFExtractor implements FieldFeatureExtractor {
   }
 
   @Override
-  public float feature(int doc) throws IOException {
-    return idf;
+  public float feature(int target) throws IOException {
+    int current = pe.docID();
+    if(current < target){
+      current = pe.advance(target);
+    }
+    if(current == target){
+      return pe.freq() * idf;
+    }
+    else{
+      return 0;
+    }
   }
 }
