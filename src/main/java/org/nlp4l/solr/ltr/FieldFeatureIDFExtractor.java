@@ -16,6 +16,8 @@
 
 package org.nlp4l.solr.ltr;
 
+import org.apache.lucene.search.Explanation;
+
 import java.io.IOException;
 
 public class FieldFeatureIDFExtractor implements FieldFeatureExtractor {
@@ -32,7 +34,12 @@ public class FieldFeatureIDFExtractor implements FieldFeatureExtractor {
   }
 
   @Override
-  public float feature(int doc) throws IOException {
+  public float feature(int target) throws IOException {
     return idf;
+  }
+
+  @Override
+  public Explanation explain(int target) throws IOException {
+    return Explanation.match(idf, "log(numDocs: " + numDocs + "/docFreq: " + docFreq + ")");
   }
 }

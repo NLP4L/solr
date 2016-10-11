@@ -143,9 +143,15 @@ public final class LinearWeightQuery extends Query {
     }
 
     @Override
-    public Explanation explain(LeafReaderContext leafReaderContext, int i) throws IOException {
-      // TODO: implement
-      return null;
+    public Explanation explain(LeafReaderContext leafReaderContext, int doc) throws IOException {
+      LinearWeightScorer scorer = (LinearWeightScorer)scorer(leafReaderContext);
+      if(scorer != null){
+        int newDoc = scorer.iterator().advance(doc);
+        if (newDoc == doc) {
+          return Explanation.match(scorer.score(), "sum of:", scorer.subExplanations(doc));
+        }
+      }
+      return Explanation.noMatch("no matching terms");
     }
 
     @Override

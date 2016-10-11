@@ -16,10 +16,11 @@
 
 package org.nlp4l.solr.ltr;
 
-import org.apache.lucene.index.Term;
+import org.apache.lucene.search.Explanation;
 
 import java.io.IOException;
 
 public interface FieldFeatureExtractor {
-  public abstract float feature(int doc) throws IOException;
+  public float feature(int doc) throws IOException;
+  public Explanation explain(int doc) throws IOException;
 }

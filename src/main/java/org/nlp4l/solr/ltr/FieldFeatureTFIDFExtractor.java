@@ -17,6 +17,7 @@
 package org.nlp4l.solr.ltr;
 
 import org.apache.lucene.index.PostingsEnum;
+import org.apache.lucene.search.Explanation;
 
 import java.io.IOException;
 
@@ -46,6 +47,24 @@ public class FieldFeatureTFIDFExtractor implements FieldFeatureExtractor {
     }
     else{
       return 0;
+    }
+  }
+
+  @Override
+  public Explanation explain(int target) throws IOException {
+    int current = pe.docID();
+    if(current < target){
+      current = pe.advance(target);
+    }
+    if(current == target){
+      int freq = pe.freq();
+      float score = freq * idf;
+      Explanation eTf = Explanation.match(freq, "TF = freq = " + freq);
+      Explanation eIdf = Explanation.match(idf, "IDF = log(" + numDocs + "/" + docFreq + ")");
+      return Explanation.match(score, "TF * IDF:", eTf, eIdf);
+    }
+    else{
+      return Explanation.noMatch("no matching terms");
     }
   }
 }

@@ -16,8 +16,8 @@
 
 package org.nlp4l.solr.ltr;
 
-import org.apache.lucene.index.PostingsEnum;
 import org.apache.lucene.search.DocIdSetIterator;
+import org.apache.lucene.search.Explanation;
 import org.apache.lucene.search.Scorer;
 import org.apache.lucene.search.Weight;
 
@@ -60,6 +60,24 @@ public class LinearWeightScorer extends Scorer {
     }
 
     return score;
+  }
+
+  public List<Explanation> subExplanations(int target) throws IOException {
+    List<Explanation> expls = new ArrayList<Explanation>();
+    int idx = 0;
+    for(FieldFeatureExtractor[] extractors: featuresSpec){
+      float feature = 0;
+      List<Explanation> subExpls = new ArrayList<Explanation>();
+      for(FieldFeatureExtractor extractor: extractors){
+        feature += extractor.feature(target);
+        subExpls.add(extractor.explain(target));
+      }
+      float w = weights.get(idx);
+      float score = w * feature;
+      expls.add(Explanation.match(score, "weight: " + w + " * feature: " + feature + " sum of:", subExpls));
+      idx++;
+    }
+    return expls;
   }
 
   @Override
