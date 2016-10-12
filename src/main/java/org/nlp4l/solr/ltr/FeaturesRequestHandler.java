@@ -86,26 +86,26 @@ public class FeaturesRequestHandler extends RequestHandlerBase {
       }
       long procId = startExtractor(settings, queries.toString());
       FeaturesExtractorManager manager = getManager(procId);
-      results.add("procId", procId);
+      results.add("procid", procId);
       results.add("progress", manager.getProgress());
     }
     else if(command.equals("progress")){
       long procId = req.getParams().required().getLong("id");
       FeaturesExtractorManager manager = getManager(procId);
-      results.add("procId", procId);
+      results.add("procid", procId);
       results.add("progress", manager.getProgress());
     }
     else if(command.equals("download")){
       long procId = req.getParams().required().getLong("id");
       FeaturesExtractorManager manager = getManager(procId);
-      results.add("procId", procId);
+      results.add("procid", procId);
       // TODO
       results.add("progress", manager.getProgress());
     }
     else if(command.equals("delete")){
       long procId = req.getParams().required().getLong("id");
       FeaturesExtractorManager manager = getManager(procId);
-      results.add("procId", procId);
+      results.add("procid", procId);
       // TODO
       results.add("progress", manager.getProgress());
     }
