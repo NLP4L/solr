@@ -101,6 +101,14 @@ public class FeaturesRequestHandler extends RequestHandlerBase {
       results.add("procid", procId);
       // TODO
       results.add("progress", manager.getProgress());
+      List<SimpleOrderedMap> features = new ArrayList();
+      SimpleOrderedMap<Object> feature = new SimpleOrderedMap<Object>();
+      feature.add("fid", 1111);
+      feature.add("qid", 102);
+      feature.add("docid", "123456");
+      feature.add("value", 123.4567f);
+      features.add(feature);
+      results.add("results", features);
     }
     else if(command.equals("delete")){
       long procId = req.getParams().required().getLong("id");
