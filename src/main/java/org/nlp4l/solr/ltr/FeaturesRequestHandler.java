@@ -80,13 +80,13 @@ public class FeaturesRequestHandler extends RequestHandlerBase {
       }
       long procId = startExtractor(req, featuresSpec, queries.toString());
       FeaturesExtractorManager manager = getManager(procId);
-      results.add("procId", procId);
+      results.add("procid", procId);
       results.add("progress", manager.getProgress());
     }
     else if(command.equals("progress")){
       long procId = req.getParams().required().getLong("procId");
       FeaturesExtractorManager manager = getManager(procId);
-      results.add("procId", procId);
+      results.add("procid", procId);
       results.add("progress", manager.getProgress());
     }
     else if(command.equals("download")){
