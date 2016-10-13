@@ -15,6 +15,12 @@ Copy the project jar file to the lib directory of Solr webapp. It usually exists
 $ cp target/nlp4l-solr-VERSION.jar ${solr_install_dir}/server/solr-webapp/webapp/WEB-INF/lib
 ```
 
+This project needs [config library developed by typesafe](https://github.com/typesafehub/config/releases) to be copied in the same directory.
+
+```
+$ cp config-1.3.1.jar ${solr_install_dir}/server/solr-webapp/webapp/WEB-INF/lib
+```
+
 # How to set up the fileReceiver servlet
 
 The fileReceiver servlet needs to be registered in web.xml.
