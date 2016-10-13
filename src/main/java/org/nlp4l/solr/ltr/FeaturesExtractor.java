@@ -22,6 +22,7 @@ import org.apache.lucene.index.IndexReaderContext;
 import org.apache.lucene.index.LeafReaderContext;
 import org.apache.lucene.index.Term;
 import org.apache.lucene.search.DocIdSetIterator;
+import org.apache.lucene.search.Explanation;
 import org.apache.lucene.search.TermQuery;
 import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.util.IOUtils;
@@ -58,6 +59,8 @@ public class FeaturesExtractor implements Callable<Integer> {
   @Override
   public Integer call() {
     PrintWriter pw = null;
+    final boolean _debug = false;
+    List<Explanation> _debugExpls = null;
     try {
       pw = new PrintWriter(featuresFile);
       pw.println("data: {");
@@ -184,14 +187,23 @@ public class FeaturesExtractor implements Callable<Integer> {
               int cntF = 0;
               for(FieldFeatureExtractor[] extractors: spec){
                 float feature = 0;
+                if(_debug){
+                  _debugExpls = new ArrayList<Explanation>();
+                }
                 for(FieldFeatureExtractor extractor: extractors){
                   feature += extractor.feature(targetDoc);
+                  if(_debug){
+                    _debugExpls.add(extractor.explain(targetDoc));
+                  }
                 }
                 if(cntF > 0){
                   pw.printf(", %f", feature);
                 }
                 else{
                   pw.printf(" %f", feature);
+                }
+                if(_debug){
+                  pw.printf(": %s", Explanation.match(feature, "sum of ", _debugExpls));
                 }
                 cntF++;
               }
