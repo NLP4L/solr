@@ -20,18 +20,13 @@ import org.apache.commons.io.IOUtils;
 import org.apache.solr.common.SolrException;
 import org.apache.solr.common.util.ContentStream;
 import org.apache.solr.common.util.SimpleOrderedMap;
-import org.apache.solr.core.SolrResourceLoader;
 import org.apache.solr.handler.RequestHandlerBase;
 import org.apache.solr.request.SolrQueryRequest;
 import org.apache.solr.response.SolrQueryResponse;
-import org.noggit.JSONParser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.Reader;
-import java.io.StringReader;
 import java.lang.invoke.MethodHandles;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -42,26 +37,18 @@ public class FeaturesRequestHandler extends RequestHandlerBase {
 
   private static final Logger log = LoggerFactory.getLogger(MethodHandles.lookup().lookupClass());
 
-  static final int STATE_ERROR = -1;
-  static final int[] NEXT_STATE_OBJECT_START = { 1, -1, -1,  4, -1, -1, -1, -1, -1, 10, -1, -1, -1, -1, -1};
-  static final int[] NEXT_STATE_OBJECT_END =   {-1, -1, -1, -1, -1, -1, -1, -1,  3, -1, 13, -1, -1,  3, 15};
-  static final int[] NEXT_STATE_ARRAY_START =  {-1, -1,  3, -1, -1, -1, -1, -1, -1, -1, -1, 12, -1, -1, -1};
-  static final int[] NEXT_STATE_ARRAY_END =    {-1, -1, -1, 14, -1, -1, -1, -1, -1, -1, -1, -1, 10, -1, -1};
-  static final int[] NEXT_STATE_FEATURES =     {-1,  2, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1};
-  static final int[] NEXT_STATE_NAME =         {-1, -1, -1, -1,  5, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1};
-  static final int[] NEXT_STATE_TYPE =         {-1, -1, -1, -1, -1, -1,  7, -1, -1, -1, -1, -1, -1, -1, -1};
-  static final int[] NEXT_STATE_PARAMS =       {-1, -1, -1, -1, -1, -1, -1, -1,  9, -1, -1, -1, -1, -1, -1};
-  static final int[] NEXT_STATE_ETCKEY =       {-1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 11, -1, -1, -1, -1};
-  static final int[] NEXT_STATE_VALUE =        {-1, -1, -1, -1, -1,  6, -1,  8, -1, 13, -1, 10, 12, -1, -1};
-
   Map<Long, FeaturesExtractorManager> managers = new HashMap<Long, FeaturesExtractorManager>();
 
   /*
+  To test the extractor, use curl like this:
+  curl -v -H "Accept: application/json" -H "Content-type: application/json" -X POST -d @examples/ltr-queries.json http://localhost:8983/solr/collection1/features?command=extract&conf=ltr_features.conf
+   */
+  /*
    * available commands:
    *   - /features?command=extract&conf=<json config file name> (async, returns procId)
-   *   - /features?command=progress&id=<procId>
-   *   - /features?command=download&id=<procId>
-   *   - /features?command=delete&id=<procId>
+   *   - /features?command=progress&procId=<procId>
+   *   - /features?command=download&procId=<procId>&delete=true
+   *   - /features?command=delete&procId=<procId>
    */
   @Override
   public void handleRequestBody(SolrQueryRequest req, SolrQueryResponse rsp) throws Exception {
@@ -70,7 +57,14 @@ public class FeaturesRequestHandler extends RequestHandlerBase {
     results.add("command", command);
 
     if(command.equals("extract")){
-      List<LtrFeatureSetting> settings = loadFeatureSettings(loadConfig(req));
+      FeaturesConfigReader fcReader = new FeaturesConfigReader(req.getCore().getResourceLoader(),
+              req.getParams().required().get("conf"));
+      FeaturesConfigReader.FeatureDesc[] featureDescs = fcReader.getFeatureDescs();
+      List<FieldFeatureExtractorFactory> featuresSpec = new ArrayList<FieldFeatureExtractorFactory>();
+      for(FeaturesConfigReader.FeatureDesc featureDesc: featureDescs){
+        FieldFeatureExtractorFactory dfeFactory = FeaturesConfigReader.loadFactory(featureDesc);
+        featuresSpec.add(dfeFactory);
+      }
       if(req.getContentStreams() == null){
         throw new SolrException(SolrException.ErrorCode.BAD_REQUEST, "no queries found");
       }
@@ -84,38 +78,39 @@ public class FeaturesRequestHandler extends RequestHandlerBase {
           IOUtils.closeQuietly(reader);
         }
       }
-      long procId = startExtractor(settings, queries.toString());
+      long procId = startExtractor(req, featuresSpec, queries.toString());
       FeaturesExtractorManager manager = getManager(procId);
       results.add("procid", procId);
       results.add("progress", manager.getProgress());
     }
     else if(command.equals("progress")){
-      long procId = req.getParams().required().getLong("id");
+      long procId = req.getParams().required().getLong("procId");
       FeaturesExtractorManager manager = getManager(procId);
       results.add("procid", procId);
       results.add("progress", manager.getProgress());
     }
     else if(command.equals("download")){
-      long procId = req.getParams().required().getLong("id");
-      FeaturesExtractorManager manager = getManager(procId);
-      results.add("procid", procId);
-      // TODO
-      results.add("progress", manager.getProgress());
-      List<SimpleOrderedMap> features = new ArrayList();
-      SimpleOrderedMap<Object> feature = new SimpleOrderedMap<Object>();
-      feature.add("fid", 1111);
-      feature.add("qid", 102);
-      feature.add("docid", "123456");
-      feature.add("value", 123.4567f);
-      features.add(feature);
-      results.add("results", features);
+      long procId = req.getParams().required().getLong("procId");
+      final boolean delete = req.getParams().getBool("delete", false);
+      SimpleOrderedMap<Object> data = download(procId, delete);
+      results.add("procId", procId);
+      if(data == null){
+        FeaturesExtractorManager manager = getManager(procId);
+        results.add("progress", manager.getProgress());
+        results.add("result", "the process still runs...");
+      }
+      else{
+        if(delete){
+          results.add("deleted", "the process has been removed and the procId is no longer valid");
+        }
+        results.add("result", data);
+      }
     }
     else if(command.equals("delete")){
-      long procId = req.getParams().required().getLong("id");
-      FeaturesExtractorManager manager = getManager(procId);
-      results.add("procid", procId);
-      // TODO
-      results.add("progress", manager.getProgress());
+      long procId = req.getParams().required().getLong("procId");
+      delete(procId);
+      results.add("procId", procId);
+      results.add("result", "the process has been removed and the procId is no longer valid");
     }
     else{
       throw new SolrException(SolrException.ErrorCode.BAD_REQUEST, "unknown command " + command);
@@ -124,154 +119,16 @@ public class FeaturesRequestHandler extends RequestHandlerBase {
     rsp.add("results", results);
   }
 
-  static InputStream loadConfig(SolrQueryRequest req) throws Exception {
-    String confFile = req.getParams().required().get("conf");
-    SolrResourceLoader loader = req.getCore().getResourceLoader();
-
-    return loader.openConfig(confFile);
-  }
-
-  static List<LtrFeatureSetting> loadFeatureSettings(String jsonConf) throws Exception {
-    return loadFeatureSettings(new StringReader(jsonConf));
-  }
-
-  static List<LtrFeatureSetting> loadFeatureSettings(InputStream stream) throws Exception {
-    return loadFeatureSettings(new InputStreamReader(stream, "UTF-8"));
-  }
-
-  static List<LtrFeatureSetting> loadFeatureSettings(Reader reader) throws Exception {
-    List<LtrFeatureSetting> settings = new ArrayList<LtrFeatureSetting>();
-    LtrFeatureSetting setting = null;
-
-    JSONParser parser = new JSONParser(reader);
-
-    int state = 0;
-    String currentValue = null;
-    LtrFeatureParam fParam = null;
-    List<String> values = null;
-
-    int ev = parser.nextEvent();
-    while (ev != JSONParser.EOF) {
-      int[] stateChart;
-      switch(ev){
-        case JSONParser.OBJECT_START:
-          stateChart = NEXT_STATE_OBJECT_START;
-          break;
-        case JSONParser.OBJECT_END:
-          stateChart = NEXT_STATE_OBJECT_END;
-          break;
-        case JSONParser.ARRAY_START:
-          stateChart = NEXT_STATE_ARRAY_START;
-          break;
-        case JSONParser.ARRAY_END:
-          stateChart = NEXT_STATE_ARRAY_END;
-          break;
-        case JSONParser.STRING:
-          String str = parser.getString();
-          if(parser.wasKey()){
-            if(str.equals("features")) {
-              stateChart = NEXT_STATE_FEATURES;
-            }
-            else if(str.equals("name")) {
-              stateChart = NEXT_STATE_NAME;
-            }
-            else if(str.equals("type")) {
-              stateChart = NEXT_STATE_TYPE;
-            }
-            else if(str.equals("params")) {
-              stateChart = NEXT_STATE_PARAMS;
-            }
-            else{
-              stateChart = NEXT_STATE_ETCKEY;
-              currentValue = str;
-            }
-          }
-          else{
-            stateChart = NEXT_STATE_VALUE;
-            currentValue = str;
-          }
-          break;
-        case JSONParser.LONG:
-          stateChart = NEXT_STATE_VALUE;
-          currentValue = Long.toString(parser.getLong());
-          break;
-        case JSONParser.NUMBER:
-          stateChart = NEXT_STATE_VALUE;
-          currentValue = Long.toString(parser.getLong());
-          break;
-        case JSONParser.BIGNUMBER:
-          stateChart = NEXT_STATE_VALUE;
-          currentValue = Long.toString(parser.getLong());
-          break;
-        case JSONParser.BOOLEAN:
-          stateChart = NEXT_STATE_VALUE;
-          currentValue = Boolean.toString(parser.getBoolean());
-          break;
-        default:
-          stateChart = NEXT_STATE_VALUE;
-          break;
-      }
-
-      int nextState = stateChart[state];
-      if(nextState == STATE_ERROR){
-        throw new SolrException(SolrException.ErrorCode.BAD_REQUEST, String.format("syntax error at state = %d, event = %d", state, ev));
-      }
-
-      if(state == 3 && nextState == 4){
-        setting = new LtrFeatureSetting();
-      }
-      else if((state == 8 || state == 13) && nextState == 3){
-        settings.add(setting);
-        setting = null;
-      }
-      else if(state == 5 && nextState == 6){
-        setting.name = currentValue;
-      }
-      else if(state == 7 && nextState == 8){
-        setting.fType = currentValue;
-      }
-      else if(state == 9 && nextState == 13){
-        setting.param = currentValue;
-        currentValue = null;
-      }
-      else if(state == 9 && nextState == 10){
-        setting.params = new ArrayList<LtrFeatureParam>();
-        fParam = new LtrFeatureParam();
-      }
-      else if(state == 10 && nextState == 11){
-        fParam.name = currentValue;
-      }
-      else if(state == 11 && nextState == 10){
-        fParam.value = currentValue;
-      }
-      else if(state == 11 && nextState == 12){
-        values = new ArrayList<String>();
-      }
-      else if(state == 12 && nextState == 12){
-        values.add(currentValue);
-      }
-      else if(state == 12 && nextState == 10){
-        fParam.values = values;
-        setting.params.add(fParam);
-      }
-      state = nextState;
-
-      ev = parser.nextEvent();
-    }
-
-    return settings;
-  }
-
   @Override
   public String getDescription() {
-    return "Feature extraction for NLP4L-LTR";
+    return "Features extraction for NLP4L-LTR";
   }
 
-  public long startExtractor(List<LtrFeatureSetting> settings, String json){
+  public long startExtractor(SolrQueryRequest req, List<FieldFeatureExtractorFactory> featuresSpec, String json) throws Exception {
     // use current server time as the procId
     long procId = System.currentTimeMillis();
 
-    FeaturesExtractorManager manager = new FeaturesExtractorManager(settings, json);
+    FeaturesExtractorManager manager = new FeaturesExtractorManager(req, featuresSpec, json);
     synchronized(manager) {
       managers.put(procId, manager);
     }
@@ -285,10 +142,43 @@ public class FeaturesRequestHandler extends RequestHandlerBase {
       manager = managers.get(procId);
     }
     if(manager == null){
-      throw new SolrException(SolrException.ErrorCode.BAD_REQUEST, String.format("no such process (id=%d)", procId));
+      throw new SolrException(SolrException.ErrorCode.BAD_REQUEST, String.format("no such process (procId=%d)", procId));
     }
     else{
       return manager;
     }
+  }
+
+  public void delete(long procId){
+    synchronized (managers){
+      FeaturesExtractorManager manager = managers.get(procId);
+      if(manager == null){
+        throw new SolrException(SolrException.ErrorCode.BAD_REQUEST, String.format("no such process (procId=%d)", procId));
+      }
+      else{
+        manager.delete();
+        managers.remove(procId);
+      }
+    }
+  }
+
+  public SimpleOrderedMap<Object> download(long procId, boolean delete){
+    SimpleOrderedMap<Object> data = null;
+
+    synchronized (managers){
+      FeaturesExtractorManager manager = managers.get(procId);
+      if(manager == null){
+        throw new SolrException(SolrException.ErrorCode.BAD_REQUEST, String.format("no such process (procId=%d)", procId));
+      }
+      else{
+        data = manager.getResult();
+        if(delete){
+          manager.delete();
+          managers.remove(procId);
+        }
+      }
+    }
+
+    return data;
   }
 }

@@ -16,11 +16,11 @@
 
 package org.nlp4l.solr.ltr;
 
-import java.util.List;
+import org.apache.lucene.search.Explanation;
 
-public class LtrFeatureSetting {
-  String name;
-  String fType;
-  String param;
-  List<LtrFeatureParam> params;
+import java.io.IOException;
+
+public interface FieldFeatureExtractor {
+  public float feature(int doc) throws IOException;
+  public Explanation explain(int doc) throws IOException;
 }

@@ -16,10 +16,19 @@
 
 package org.nlp4l.solr.ltr;
 
-import java.util.List;
+import org.apache.lucene.index.Term;
+import org.apache.lucene.search.Explanation;
 
-public class LtrFeatureParam {
-  String name;
-  String value;
-  List<String> values;
+import java.io.IOException;
+
+public class FieldFeatureNullExtractor implements FieldFeatureExtractor {
+  @Override
+  public float feature(int doc) throws IOException {
+    return 0;
+  }
+
+  @Override
+  public Explanation explain(int doc) throws IOException {
+    return Explanation.noMatch("no matching terms");
+  }
 }
