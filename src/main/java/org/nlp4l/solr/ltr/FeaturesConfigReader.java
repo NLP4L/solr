@@ -19,6 +19,7 @@ package org.nlp4l.solr.ltr;
 import com.typesafe.config.Config;
 import org.apache.solr.core.SolrResourceLoader;
 
+import java.lang.reflect.Constructor;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -54,6 +55,19 @@ public class FeaturesConfigReader extends  AbstractConfigReader {
 
   public FeatureDesc getFeatureDesc(String name){
     return fdMap.get(name);
+  }
+
+  public static FieldFeatureExtractorFactory loadFactory(FeaturesConfigReader.FeatureDesc featureDesc){
+    ClassLoader loader = Thread.currentThread().getContextClassLoader();
+    try {
+      Class<? extends FieldFeatureExtractorFactory> cls = (Class<? extends FieldFeatureExtractorFactory>) loader.loadClass(featureDesc.klass);
+      Class<?>[] types = {String.class, String.class};
+      Constructor<? extends FieldFeatureExtractorFactory> constructor;
+      constructor = cls.getConstructor(types);
+      return constructor.newInstance(featureDesc.name, featureDesc.param);
+    } catch (Exception e) {
+      throw new RuntimeException(e);
+    }
   }
 
   public static class FeatureDesc {

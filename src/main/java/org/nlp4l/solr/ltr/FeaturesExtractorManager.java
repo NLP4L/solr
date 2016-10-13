@@ -16,18 +16,27 @@
 
 package org.nlp4l.solr.ltr;
 
+import org.apache.solr.request.SolrQueryRequest;
+
+import java.io.File;
+import java.io.IOException;
+import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
 public class FeaturesExtractorManager {
 
+  private final File featuresFile;
   private final FeaturesExtractor extractor;
   private final ExecutorService executor;
   private final Future<Integer> future;
 
-  public FeaturesExtractorManager(FeaturesConfigReader.FeatureDesc[] featuresSpec, String json){
-    extractor = new FeaturesExtractor(featuresSpec, json);
+  public FeaturesExtractorManager(SolrQueryRequest req, List<FieldFeatureExtractorFactory> featuresSpec, String json) throws IOException {
+    featuresFile = File.createTempFile("features-", ".json");
+    // TODO: output log
+    System.out.println(featuresFile.getAbsolutePath());
+    extractor = new FeaturesExtractor(req, featuresSpec, json, featuresFile);
     executor = Executors.newSingleThreadExecutor();
     future = executor.submit(extractor);
     executor.shutdown();

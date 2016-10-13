@@ -34,6 +34,11 @@ public abstract class AbstractConfigReader {
     config = c.getConfig(rootName);
   }
 
+  public AbstractConfigReader(String content, String rootName){
+    Config c = ConfigFactory.parseString(content);
+    config = c.getConfig(rootName);
+  }
+
   public static Config load(SolrResourceLoader loader, String fileName){
     if(loader == null)
       loader = new SolrResourceLoader();

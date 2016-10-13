@@ -16,18 +16,29 @@
 
 package org.nlp4l.solr.ltr;
 
+import org.apache.lucene.analysis.Analyzer;
+import org.apache.lucene.analysis.TokenStream;
+import org.apache.lucene.analysis.tokenattributes.CharTermAttribute;
 import org.apache.lucene.index.*;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 
 public abstract class FieldFeatureExtractorFactory {
+  protected final String featureName;
   protected final String fieldName;
   protected IndexReader reader;
   protected Term[] terms;
 
-  public FieldFeatureExtractorFactory(String fieldName){
+  public FieldFeatureExtractorFactory(String featureName, String fieldName){
+    this.featureName = featureName;
     this.fieldName = fieldName;
+  }
+
+  public String getFeatureName(){
+    return featureName;
   }
 
   public String getFieldName(){
@@ -103,5 +114,23 @@ public abstract class FieldFeatureExtractorFactory {
     } else {
       return null;
     }
+  }
+
+  public static Term[] terms(String fieldName, String qstr, Analyzer analyzer){
+    List<Term> terms = new ArrayList<Term>();
+    TokenStream stream = analyzer.tokenStream(fieldName, qstr);
+    CharTermAttribute termAtt = stream.addAttribute(CharTermAttribute.class);
+    try {
+      stream.reset();
+      while(stream.incrementToken()){
+        terms.add(new Term(fieldName, termAtt.toString()));
+      }
+      stream.end();
+      stream.close();
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
+
+    return terms.toArray(new Term[terms.size()]);
   }
 }

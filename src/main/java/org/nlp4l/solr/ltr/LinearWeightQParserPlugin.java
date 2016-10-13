@@ -56,21 +56,8 @@ public class LinearWeightQParserPlugin extends QParserPlugin {
       if(featureDesc == null){
         throw new IllegalArgumentException("no such feature " + weightDesc.name + " in the feature conf file");
       }
-      FieldFeatureExtractorFactory dfeFactory = loadFactory(featureDesc);
+      FieldFeatureExtractorFactory dfeFactory = FeaturesConfigReader.loadFactory(featureDesc);
       featuresSpec.add(dfeFactory);
-    }
-  }
-
-  private FieldFeatureExtractorFactory loadFactory(FeaturesConfigReader.FeatureDesc featureDesc){
-    ClassLoader loader = Thread.currentThread().getContextClassLoader();
-    try {
-      Class<? extends FieldFeatureExtractorFactory> cls = (Class<? extends FieldFeatureExtractorFactory>) loader.loadClass(featureDesc.klass);
-      Class<?>[] types = {String.class};
-      Constructor<? extends FieldFeatureExtractorFactory> constructor;
-      constructor = cls.getConstructor(types);
-      return constructor.newInstance(featureDesc.param);
-    } catch (Exception e) {
-      throw new RuntimeException(e);
     }
   }
 
@@ -92,28 +79,10 @@ public class LinearWeightQParserPlugin extends QParserPlugin {
         String fieldName = factory.getFieldName();
         FieldType fieldType = req.getSchema().getFieldType(fieldName);
         Analyzer analyzer = fieldType.getQueryAnalyzer();
-        factory.init(context, terms(fieldName, qstr, analyzer));
+        factory.init(context, FieldFeatureExtractorFactory.terms(fieldName, qstr, analyzer));
       }
 
       return new LinearWeightQuery(featuresSpec, weights);
-    }
-
-    private Term[] terms(String fieldName, String qstr, Analyzer analyzer){
-      List<Term> terms = new ArrayList<Term>();
-      TokenStream stream = analyzer.tokenStream(fieldName, qstr);
-      CharTermAttribute termAtt = stream.addAttribute(CharTermAttribute.class);
-      try {
-        stream.reset();
-        while(stream.incrementToken()){
-          terms.add(new Term(fieldName, termAtt.toString()));
-        }
-        stream.end();
-        stream.close();
-      } catch (IOException e) {
-        throw new RuntimeException(e);
-      }
-
-      return terms.toArray(new Term[terms.size()]);
     }
   }
 }

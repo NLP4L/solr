@@ -1,4 +1,5 @@
-{
+data: {
+  idField: "url",
   queries: [
     {
       qid: 101,

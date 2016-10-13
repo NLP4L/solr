@@ -28,7 +28,9 @@ import org.slf4j.LoggerFactory;
 
 import java.io.Reader;
 import java.lang.invoke.MethodHandles;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class FeaturesRequestHandler extends RequestHandlerBase {
@@ -53,7 +55,12 @@ public class FeaturesRequestHandler extends RequestHandlerBase {
     if(command.equals("extract")){
       FeaturesConfigReader fcReader = new FeaturesConfigReader(req.getCore().getResourceLoader(),
               req.getParams().required().get("conf"));
-      FeaturesConfigReader.FeatureDesc[] featuresSpec = fcReader.getFeatureDescs();
+      FeaturesConfigReader.FeatureDesc[] featureDescs = fcReader.getFeatureDescs();
+      List<FieldFeatureExtractorFactory> featuresSpec = new ArrayList<FieldFeatureExtractorFactory>();
+      for(FeaturesConfigReader.FeatureDesc featureDesc: featureDescs){
+        FieldFeatureExtractorFactory dfeFactory = FeaturesConfigReader.loadFactory(featureDesc);
+        featuresSpec.add(dfeFactory);
+      }
       if(req.getContentStreams() == null){
         throw new SolrException(SolrException.ErrorCode.BAD_REQUEST, "no queries found");
       }
@@ -67,26 +74,26 @@ public class FeaturesRequestHandler extends RequestHandlerBase {
           IOUtils.closeQuietly(reader);
         }
       }
-      long procId = startExtractor(featuresSpec, queries.toString());
+      long procId = startExtractor(req, featuresSpec, queries.toString());
       FeaturesExtractorManager manager = getManager(procId);
       results.add("procId", procId);
       results.add("progress", manager.getProgress());
     }
     else if(command.equals("progress")){
-      long procId = req.getParams().required().getLong("id");
+      long procId = req.getParams().required().getLong("procId");
       FeaturesExtractorManager manager = getManager(procId);
       results.add("procId", procId);
       results.add("progress", manager.getProgress());
     }
     else if(command.equals("download")){
-      long procId = req.getParams().required().getLong("id");
+      long procId = req.getParams().required().getLong("procId");
       FeaturesExtractorManager manager = getManager(procId);
       results.add("procId", procId);
       // TODO
       results.add("progress", manager.getProgress());
     }
     else if(command.equals("delete")){
-      long procId = req.getParams().required().getLong("id");
+      long procId = req.getParams().required().getLong("procId");
       FeaturesExtractorManager manager = getManager(procId);
       results.add("procId", procId);
       // TODO
@@ -104,11 +111,11 @@ public class FeaturesRequestHandler extends RequestHandlerBase {
     return "Feature extraction for NLP4L-LTR";
   }
 
-  public long startExtractor(FeaturesConfigReader.FeatureDesc[] featuresSpec, String json){
+  public long startExtractor(SolrQueryRequest req, List<FieldFeatureExtractorFactory> featuresSpec, String json) throws Exception {
     // use current server time as the procId
     long procId = System.currentTimeMillis();
 
-    FeaturesExtractorManager manager = new FeaturesExtractorManager(featuresSpec, json);
+    FeaturesExtractorManager manager = new FeaturesExtractorManager(req, featuresSpec, json);
     synchronized(manager) {
       managers.put(procId, manager);
     }

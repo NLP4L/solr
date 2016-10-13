@@ -23,8 +23,8 @@ import java.util.Set;
 
 public class FieldFeatureTFExtractorFactory extends FieldFeatureExtractorFactory {
 
-  public FieldFeatureTFExtractorFactory(String fieldName){
-    super(fieldName);
+  public FieldFeatureTFExtractorFactory(String featureName, String fieldName){
+    super(featureName, fieldName);
   }
 
   @Override
