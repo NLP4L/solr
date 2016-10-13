@@ -40,11 +40,15 @@ public class FeaturesRequestHandler extends RequestHandlerBase {
   Map<Long, FeaturesExtractorManager> managers = new HashMap<Long, FeaturesExtractorManager>();
 
   /*
+  To test the extractor, use curl like this:
+  curl -v -H "Accept: application/json" -H "Content-type: application/json" -X POST -d @examples/ltr-queries.json http://localhost:8983/solr/collection1/features?command=extract&conf=ltr_features.conf
+   */
+  /*
    * available commands:
    *   - /features?command=extract&conf=<json config file name> (async, returns procId)
-   *   - /features?command=progress&id=<procId>
-   *   - /features?command=download&id=<procId>
-   *   - /features?command=delete&id=<procId>
+   *   - /features?command=progress&procId=<procId>
+   *   - /features?command=download&procId=<procId>&delete=true
+   *   - /features?command=delete&procId=<procId>
    */
   @Override
   public void handleRequestBody(SolrQueryRequest req, SolrQueryResponse rsp) throws Exception {
@@ -87,17 +91,26 @@ public class FeaturesRequestHandler extends RequestHandlerBase {
     }
     else if(command.equals("download")){
       long procId = req.getParams().required().getLong("procId");
-      FeaturesExtractorManager manager = getManager(procId);
+      final boolean delete = req.getParams().getBool("delete", false);
+      SimpleOrderedMap<Object> data = download(procId, delete);
       results.add("procId", procId);
-      // TODO
-      results.add("progress", manager.getProgress());
+      if(data == null){
+        FeaturesExtractorManager manager = getManager(procId);
+        results.add("progress", manager.getProgress());
+        results.add("result", "the process still runs...");
+      }
+      else{
+        if(delete){
+          results.add("deleted", "the process has been removed and the procId is no longer valid");
+        }
+        results.add("result", data);
+      }
     }
     else if(command.equals("delete")){
       long procId = req.getParams().required().getLong("procId");
-      FeaturesExtractorManager manager = getManager(procId);
+      delete(procId);
       results.add("procId", procId);
-      // TODO
-      results.add("progress", manager.getProgress());
+      results.add("result", "the process has been removed and the procId is no longer valid");
     }
     else{
       throw new SolrException(SolrException.ErrorCode.BAD_REQUEST, "unknown command " + command);
@@ -108,7 +121,7 @@ public class FeaturesRequestHandler extends RequestHandlerBase {
 
   @Override
   public String getDescription() {
-    return "Feature extraction for NLP4L-LTR";
+    return "Features extraction for NLP4L-LTR";
   }
 
   public long startExtractor(SolrQueryRequest req, List<FieldFeatureExtractorFactory> featuresSpec, String json) throws Exception {
@@ -129,10 +142,43 @@ public class FeaturesRequestHandler extends RequestHandlerBase {
       manager = managers.get(procId);
     }
     if(manager == null){
-      throw new SolrException(SolrException.ErrorCode.BAD_REQUEST, String.format("no such process (id=%d)", procId));
+      throw new SolrException(SolrException.ErrorCode.BAD_REQUEST, String.format("no such process (procId=%d)", procId));
     }
     else{
       return manager;
     }
+  }
+
+  public void delete(long procId){
+    synchronized (managers){
+      FeaturesExtractorManager manager = managers.get(procId);
+      if(manager == null){
+        throw new SolrException(SolrException.ErrorCode.BAD_REQUEST, String.format("no such process (procId=%d)", procId));
+      }
+      else{
+        manager.delete();
+        managers.remove(procId);
+      }
+    }
+  }
+
+  public SimpleOrderedMap<Object> download(long procId, boolean delete){
+    SimpleOrderedMap<Object> data = null;
+
+    synchronized (managers){
+      FeaturesExtractorManager manager = managers.get(procId);
+      if(manager == null){
+        throw new SolrException(SolrException.ErrorCode.BAD_REQUEST, String.format("no such process (procId=%d)", procId));
+      }
+      else{
+        data = manager.getResult();
+        if(delete){
+          manager.delete();
+          managers.remove(procId);
+        }
+      }
+    }
+
+    return data;
   }
 }
