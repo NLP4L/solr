@@ -80,13 +80,14 @@ public class FeaturesRequestHandler extends RequestHandlerBase {
       }
       long procId = startExtractor(req, featuresSpec, queries.toString());
       FeaturesExtractorManager manager = getManager(procId);
-      results.add("procid", procId);
+      results.add("procId", procId);
       results.add("progress", manager.getProgress());
     }
     else if(command.equals("progress")){
       long procId = req.getParams().required().getLong("procId");
       FeaturesExtractorManager manager = getManager(procId);
-      results.add("procid", procId);
+      results.add("procId", procId);
+      results.add("done?", manager.isDone());
       results.add("progress", manager.getProgress());
     }
     else if(command.equals("download")){
@@ -96,6 +97,7 @@ public class FeaturesRequestHandler extends RequestHandlerBase {
       results.add("procId", procId);
       if(data == null){
         FeaturesExtractorManager manager = getManager(procId);
+        results.add("done?", manager.isDone());
         results.add("progress", manager.getProgress());
         results.add("result", "the process still runs...");
       }

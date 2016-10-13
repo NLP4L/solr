@@ -51,6 +51,10 @@ public class FeaturesExtractorManager {
     return extractor.reportProgress();
   }
 
+  public boolean isDone(){
+    return future.isDone();
+  }
+
   public void delete(){
     if(featuresFile != null){
       featuresFile.delete();
