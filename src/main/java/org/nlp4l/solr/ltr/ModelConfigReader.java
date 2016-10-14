@@ -53,5 +53,12 @@ public class ModelConfigReader extends AbstractConfigReader {
       this.name = name;
       this.weight = weight;
     }
+
+    @Override
+    public String toString(){
+      StringBuilder sb = new StringBuilder();
+      sb.append("name=").append(name).append(",weight=").append(weight);
+      return sb.toString();
+    }
   }
 }

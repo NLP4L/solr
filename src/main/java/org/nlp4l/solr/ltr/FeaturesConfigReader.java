@@ -79,5 +79,12 @@ public class FeaturesConfigReader extends  AbstractConfigReader {
       this.klass = klass;
       this.param = param;
     }
+
+    @Override
+    public String toString(){
+      StringBuilder sb = new StringBuilder();
+      sb.append("name=").append(name).append(",class=").append(klass).append(",params=").append(param);
+      return sb.toString();
+    }
   }
 }
