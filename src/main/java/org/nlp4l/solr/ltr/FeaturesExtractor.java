@@ -28,7 +28,6 @@ import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.util.IOUtils;
 import org.apache.solr.request.SolrQueryRequest;
 import org.apache.solr.schema.FieldType;
-import org.apache.solr.search.SolrIndexSearcher;
 
 import java.io.File;
 import java.io.IOException;

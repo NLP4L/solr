@@ -31,9 +31,9 @@ public class FieldFeatureTFIDFExtractor implements FieldFeatureExtractor {
   public FieldFeatureTFIDFExtractor(PostingsEnum pe, int numDocs, int docFreq){
     this.pe = pe;
     assert numDocs >= docFreq;
-    this.numDocs = numDocs;
+    this.numDocs = numDocs + 1;
     this.docFreq = docFreq <= 0 ? 1 : docFreq;
-    idf = (float)Math.log((double)numDocs/(double)this.docFreq);
+    idf = (float)Math.log((double)this.numDocs/(double)this.docFreq);
   }
 
   @Override
