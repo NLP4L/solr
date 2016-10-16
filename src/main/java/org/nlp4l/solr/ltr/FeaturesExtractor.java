@@ -233,6 +233,7 @@ public class FeaturesExtractor implements Callable<Integer> {
       IOUtils.closeWhileHandlingException(pw);
     }
 
+    req.close();
     return 100;
   }
 

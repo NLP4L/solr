@@ -6,3 +6,4 @@ target/
 /.project
 /.settings
 /lib/
+/src/test/resources/collection1/conf/_schema_analysis_stopwords_english.json

@@ -57,38 +57,16 @@ public class FeaturesRequestHandler extends RequestHandlerBase {
     results.add("command", command);
 
     if(command.equals("extract")){
-      FeaturesConfigReader fcReader = new FeaturesConfigReader(req.getCore().getResourceLoader(),
-              req.getParams().required().get("conf"));
-      FeaturesConfigReader.FeatureDesc[] featureDescs = fcReader.getFeatureDescs();
-      List<FieldFeatureExtractorFactory> featuresSpec = new ArrayList<FieldFeatureExtractorFactory>();
-      for(FeaturesConfigReader.FeatureDesc featureDesc: featureDescs){
-        FieldFeatureExtractorFactory dfeFactory = FeaturesConfigReader.loadFactory(featureDesc);
-        featuresSpec.add(dfeFactory);
-      }
-      if(req.getContentStreams() == null){
+      Iterable<ContentStream> ite = req.getContentStreams();
+      if(ite == null){
         throw new SolrException(SolrException.ErrorCode.BAD_REQUEST, "no queries found");
       }
-      StringBuilder queries = new StringBuilder();
-      for(ContentStream cs: req.getContentStreams()){
-        Reader reader = cs.getReader();
-        try{
-          queries.append(IOUtils.toString(reader));
-        }
-        finally{
-          IOUtils.closeQuietly(reader);
-        }
+      else{
+        handleExtract(req, ite, results);
       }
-      long procId = startExtractor(req, featuresSpec, queries.toString());
-      FeaturesExtractorManager manager = getManager(procId);
-      results.add("procId", procId);
-      results.add("progress", manager.getProgress());
     }
     else if(command.equals("progress")){
-      long procId = req.getParams().required().getLong("procId");
-      FeaturesExtractorManager manager = getManager(procId);
-      results.add("procId", procId);
-      results.add("done?", manager.isDone());
-      results.add("progress", manager.getProgress());
+      handleProgress(req, results);
     }
     else if(command.equals("download")){
       long procId = req.getParams().required().getLong("procId");
@@ -109,16 +87,54 @@ public class FeaturesRequestHandler extends RequestHandlerBase {
       }
     }
     else if(command.equals("delete")){
-      long procId = req.getParams().required().getLong("procId");
-      delete(procId);
-      results.add("procId", procId);
-      results.add("result", "the process has been removed and the procId is no longer valid");
+      handleDelete(req, results);
     }
     else{
       throw new SolrException(SolrException.ErrorCode.BAD_REQUEST, "unknown command " + command);
     }
 
     rsp.add("results", results);
+  }
+
+  public void handleExtract(SolrQueryRequest req, Iterable<ContentStream> ite, SimpleOrderedMap<Object> results)
+          throws Exception {
+    FeaturesConfigReader fcReader = new FeaturesConfigReader(req.getCore().getResourceLoader(),
+            req.getParams().required().get("conf"));
+    FeaturesConfigReader.FeatureDesc[] featureDescs = fcReader.getFeatureDescs();
+    List<FieldFeatureExtractorFactory> featuresSpec = new ArrayList<FieldFeatureExtractorFactory>();
+    for(FeaturesConfigReader.FeatureDesc featureDesc: featureDescs){
+      FieldFeatureExtractorFactory dfeFactory = FeaturesConfigReader.loadFactory(featureDesc);
+      featuresSpec.add(dfeFactory);
+    }
+    StringBuilder queries = new StringBuilder();
+    for(ContentStream cs: ite){
+      Reader reader = cs.getReader();
+      try{
+        queries.append(IOUtils.toString(reader));
+      }
+      finally{
+        IOUtils.closeQuietly(reader);
+      }
+    }
+    long procId = startExtractor(req, featuresSpec, queries.toString());
+    FeaturesExtractorManager manager = getManager(procId);
+    results.add("procId", procId);
+    results.add("progress", manager.getProgress());
+  }
+
+  public void handleProgress(SolrQueryRequest req, SimpleOrderedMap<Object> results) throws Exception {
+    long procId = req.getParams().required().getLong("procId");
+    FeaturesExtractorManager manager = getManager(procId);
+    results.add("procId", procId);
+    results.add("done?", manager.isDone());
+    results.add("progress", manager.getProgress());
+  }
+
+  public void handleDelete(SolrQueryRequest req, SimpleOrderedMap<Object> results) throws Exception {
+    long procId = req.getParams().required().getLong("procId");
+    delete(procId);
+    results.add("procId", procId);
+    results.add("result", "the process has been removed and the procId is no longer valid");
   }
 
   @Override
