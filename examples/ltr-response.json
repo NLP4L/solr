@@ -1,20 +1,106 @@
 {
- results:{
-  procid: 123,
-  progress: 100,
-  results: [
-    {
-      fid: 101,
-      qid: 123,
-      docid: "http://news.livedoor.com/article/detail/5667825/",
-      value: 123.45678
-    },
-    {
-      fid: 102,
-      qid: 123,
-      docid: "http://news.livedoor.com/article/detail/5667825/",
-      value: -1.001234
+    "responseHeader": {
+        "QTime": 6, 
+        "status": 0
+    }, 
+    "results": {
+        "command": "download", 
+        "procId": 1476600502540, 
+        "result": {
+            "data": {
+                "feature": [
+                    "TF in name", 
+                    "TF in features", 
+                    "IDF in name", 
+                    "IDF in features"
+                ], 
+                "queries": [
+                    {
+                        "docs": [
+                            {
+                                "feature": [
+                                    1, 
+                                    0, 
+                                    2.397895, 
+                                    3.496508
+                                ], 
+                                "id": "F8V7067-APL-KIT"
+                            }, 
+                            {
+                                "feature": [
+                                    2, 
+                                    1, 
+                                    2.397895, 
+                                    3.496508
+                                ], 
+                                "id": "IW-02"
+                            }, 
+                            {
+                                "feature": [
+                                    1, 
+                                    0, 
+                                    2.397895, 
+                                    3.496508
+                                ], 
+                                "id": "MA147LL/A"
+                            }
+                        ], 
+                        "qid": 2, 
+                        "query": "ipod"
+                    }, 
+                    {
+                        "docs": [
+                            {
+                                "feature": [
+                                    1, 
+                                    0, 
+                                    2.397895, 
+                                    2.80336
+                                ], 
+                                "id": "TWINX2048-3200PRO"
+                            }, 
+                            {
+                                "feature": [
+                                    1, 
+                                    0, 
+                                    2.397895, 
+                                    2.80336
+                                ], 
+                                "id": "VS1GB400C3"
+                            }, 
+                            {
+                                "feature": [
+                                    1, 
+                                    0, 
+                                    2.397895, 
+                                    2.80336
+                                ], 
+                                "id": "VDBDB1A16"
+                            }, 
+                            {
+                                "feature": [
+                                    0, 
+                                    3, 
+                                    2.397895, 
+                                    2.80336
+                                ], 
+                                "id": "0579B002"
+                            }, 
+                            {
+                                "feature": [
+                                    0, 
+                                    1, 
+                                    2.397895, 
+                                    2.80336
+                                ], 
+                                "id": "EN7800GTX/2DHTV/256M"
+                            }
+                        ], 
+                        "qid": 3, 
+                        "query": "memory"
+                    }
+                ]
+            }
+        }
     }
-  ]
- }
 }

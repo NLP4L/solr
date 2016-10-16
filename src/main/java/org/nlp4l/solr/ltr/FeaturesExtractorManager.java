@@ -24,6 +24,7 @@ import org.apache.solr.request.SolrQueryRequest;
 
 import java.io.*;
 import java.util.List;
+import java.util.ArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -88,10 +89,10 @@ public class FeaturesExtractorManager {
     return result;
   }
 
-  SimpleOrderedMap<Object> parseQueries(List<? extends Config> queries){
-    SimpleOrderedMap<Object> result = new SimpleOrderedMap<Object>();
+  List<Object> parseQueries(List<? extends Config> queries){
+    List<Object> result = new ArrayList<Object>();
     for(Config q: queries){
-      result.add("q", parseQ(q));
+      result.add(parseQ(q));
     }
     return result;
   }
@@ -104,10 +105,10 @@ public class FeaturesExtractorManager {
     return result;
   }
 
-  SimpleOrderedMap<Object> parseDocs(List<? extends Config> docs){
-    SimpleOrderedMap<Object> result = new SimpleOrderedMap<Object>();
+  List<Object> parseDocs(List<? extends Config> docs){
+    List<Object> result = new ArrayList<Object>();
     for(Config doc: docs){
-      result.add("doc", parseDoc(doc));
+      result.add(parseDoc(doc));
     }
     return result;
   }
