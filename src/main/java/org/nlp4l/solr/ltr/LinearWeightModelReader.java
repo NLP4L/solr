@@ -21,15 +21,15 @@ import org.apache.solr.core.SolrResourceLoader;
 
 import java.util.List;
 
-public class ModelConfigReader extends AbstractConfigReader {
+public class LinearWeightModelReader extends AbstractConfigReader {
 
-  private final WeightDesc[] weightDescs;
+  protected final WeightDesc[] weightDescs;
 
-  public ModelConfigReader(String fileName){
+  public LinearWeightModelReader(String fileName){
     this(null, fileName);
   }
 
-  public ModelConfigReader(SolrResourceLoader loader, String fileName){
+  public LinearWeightModelReader(SolrResourceLoader loader, String fileName){
     super(loader, fileName, "model");
     List<? extends Config> weightsConfig = config.getConfigList("weights");
     weightDescs = new WeightDesc[weightsConfig.size()];

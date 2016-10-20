@@ -1674,11 +1674,18 @@
      <transformer name="qecBooster" class="org.apache.solr.response.transform.EditorialMarkerFactory" />
     -->
 
-  <queryParser name="linearWeight" class="org.nlp4l.solr.ltr.LinearWeightQParserPlugin">
-    <lst name="settings">
-      <str name="features">collection1/conf/ltr_features.conf</str>
-      <str name="model">collection1/conf/linearweight_model_tfonly.conf</str>
-    </lst>
-  </queryParser>
-    
+    <queryParser name="linearWeight" class="org.nlp4l.solr.ltr.LinearWeightQParserPlugin">
+        <lst name="settings">
+            <str name="features">collection1/conf/ltr_features.conf</str>
+            <str name="model">collection1/conf/linearweight_model_tfonly.conf</str>
+        </lst>
+    </queryParser>
+
+    <queryParser name="prank" class="org.nlp4l.solr.ltr.PRankQParserPlugin">
+        <lst name="settings">
+            <str name="features">collection1/conf/ltr_features.conf</str>
+            <str name="model">collection1/conf/prank_model.conf</str>
+        </lst>
+    </queryParser>
+
 </config>

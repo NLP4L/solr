@@ -16,24 +16,28 @@
 
 package org.nlp4l.solr.ltr;
 
-import org.apache.lucene.search.DocIdSetIterator;
-import org.apache.lucene.search.Explanation;
-import org.apache.lucene.search.Scorer;
-import org.apache.lucene.search.Weight;
+import org.apache.solr.core.SolrResourceLoader;
 
-import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 
-public class LinearWeightScorer extends AbstractLinearWeightScorer {
+public class PRankModelReader extends LinearWeightModelReader {
 
-  public LinearWeightScorer(Weight luceneWeight, List<FieldFeatureExtractor[]> featuresSpec,
-                            List<Float> weights, DocIdSetIterator iterator) {
-    super(luceneWeight, featuresSpec, weights, iterator);
+  protected final float[] bs;
+
+  public PRankModelReader(String fileName){
+    this(null, fileName);
   }
 
-  @Override
-  public float score() throws IOException {
-    return innerProduct();
+  public PRankModelReader(SolrResourceLoader loader, String fileName){
+    super(loader, fileName);
+    List<Double> bbs = config.getDoubleList("bs");
+    bs = new float[bbs.size()];
+    for(int i = 0; i < bs.length; i++){
+      bs[i] = (float)bbs.get(i).doubleValue();
+    }
+  }
+
+  public float[] getBs(){
+    return bs;
   }
 }
