@@ -20,30 +20,26 @@ import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
 import org.apache.lucene.document.StringField;
 import org.apache.lucene.index.*;
-import org.apache.lucene.search.*;
+import org.apache.lucene.search.IndexSearcher;
+import org.apache.lucene.search.TopDocs;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.util.IOUtils;
-import org.apache.lucene.util.LuceneTestCase;
 import org.junit.Test;
-import static org.junit.Assert.*;
 
-import java.util.ArrayList;
-import java.util.List;
-
-public class LinearWeightQueryTest extends AbstractLTRQueryTestCase {
+public class PRankQueryTest extends AbstractLTRQueryTestCase {
 
   @Test
   public void testToStringBeforeInit() throws Exception {
-    LinearWeightQuery linearWeightQuery = new LinearWeightQuery(buildFeaturesSpec(
+    PRankQuery prankQuery = new PRankQuery(buildFeaturesSpec(
             getTF("TF in title", "title"), getTF("TF in body", "body"), getIDF("IDF in title", "title"), getTFIDF("TFIDF in body", "body")),
-            buildWeights(3.0F, 4.0F, 1.5F, 2.5F));
-    assertEquals("org.nlp4l.solr.ltr.LinearWeightQuery featuresSpec=[" +
+            buildWeights(3.0F, 4.0F, 1.5F, 2.5F), buildWeights(-10, 20, 50,100));
+    assertEquals("org.nlp4l.solr.ltr.PRankQuery featuresSpec=[" +
                     "org.nlp4l.solr.ltr.FieldFeatureTFExtractorFactory[]," +
                     "org.nlp4l.solr.ltr.FieldFeatureTFExtractorFactory[]," +
                     "org.nlp4l.solr.ltr.FieldFeatureIDFExtractorFactory[]," +
                     "org.nlp4l.solr.ltr.FieldFeatureTFIDFExtractorFactory[]]," +
-                    " weights=[3.0,4.0,1.5,2.5]",
-            linearWeightQuery.toString());
+                    " weights=[3.0,4.0,1.5,2.5], bs=[-10.0,20.0,50.0,100.0]",
+            prankQuery.toString());
   }
 
   @Test
@@ -54,22 +50,23 @@ public class LinearWeightQueryTest extends AbstractLTRQueryTestCase {
     DirectoryReader reader = w.getReader();
     IndexReaderContext context = reader.getContext();
 
-    LinearWeightQuery linearWeightQuery = new LinearWeightQuery(buildFeaturesSpec(
+    PRankQuery prankQuery = new PRankQuery(buildFeaturesSpec(
             getTF("TF in title", "title", context, new Term("title", "foo")),
             getTF("TF in body", "body", context, new Term("body", "bar")),
             getIDF("IDF in title", "title", context, new Term("title", "foo"))),
-            buildWeights(3.0F, 4.0F, 1.5F));
-    assertEquals("org.nlp4l.solr.ltr.LinearWeightQuery featuresSpec=[" +
+            buildWeights(3.0F, 4.0F, 1.5F), buildWeights(-10, 20, 50,100));
+    assertEquals("org.nlp4l.solr.ltr.PRankQuery featuresSpec=[" +
                     "org.nlp4l.solr.ltr.FieldFeatureTFExtractorFactory[title:foo]," +
                     "org.nlp4l.solr.ltr.FieldFeatureTFExtractorFactory[body:bar]," +
-                    "org.nlp4l.solr.ltr.FieldFeatureIDFExtractorFactory[title:foo]], weights=[3.0,4.0,1.5]",
-            linearWeightQuery.toString());
+                    "org.nlp4l.solr.ltr.FieldFeatureIDFExtractorFactory[title:foo]], " +
+                    "weights=[3.0,4.0,1.5], bs=[-10.0,20.0,50.0,100.0]",
+            prankQuery.toString());
 
     IOUtils.close(reader, w, dir);
   }
 
   @Test
-  public void testLinearWeightQuery() throws Exception {
+  public void testPRankQuery() throws Exception {
     Directory dir = newDirectory();
     RandomIndexWriter w = new RandomIndexWriter(random(), dir, newIndexWriterConfig().setMergePolicy(NoMergePolicy.INSTANCE));
 
@@ -90,27 +87,29 @@ public class LinearWeightQueryTest extends AbstractLTRQueryTestCase {
     DirectoryReader reader = w.getReader();
     IndexReaderContext context = reader.getContext();
 
-    LinearWeightQuery linearWeightQuery = new LinearWeightQuery(buildFeaturesSpec(
+    PRankQuery prankQuery = new PRankQuery(buildFeaturesSpec(
             getTF("TF in title", "title", context, new Term("title", "foo")),
             getTF("TF in body", "body", context, new Term("body", "bar")),
             getIDF("IDF in title", "title", context, new Term("title", "foo")),
             getTFIDF("TFIDF in body", "body", context, new Term("body", "bar")),
             getSV("length in body", "len", context, new Term("title", "foo"), new Term("body", "foo"))),
-            buildWeights(3.0F, 4.0F, 1.5F, 2.5F, 6.0F));
+            buildWeights(3.0F, 4.0F, 1.5F, 2.5F, 6.0F), buildWeights(10, 50, 100, 120));
 
     IndexSearcher searcher = new IndexSearcher(reader);
-    TopDocs topDocs = searcher.search(linearWeightQuery, 10);
+    TopDocs topDocs = searcher.search(prankQuery, 10);
     assertEquals(2, topDocs.totalHits);
 
     // title: foo, body:bar
     assertEquals("bar", searcher.doc(topDocs.scoreDocs[0].doc).get("body"));
-    float expectedScore = 3 * 1 + 4 * 1 + 1.5F * (float)Math.log(3.0 / 2.0) + 2.5F * 1 * (float)Math.log(3.0 / 1.0) + 22 * 6.0F;
-    assertEquals(expectedScore, topDocs.scoreDocs[0].score, 0.0005);
+    float innerProduct = 3 * 1 + 4 * 1 + 1.5F * (float)Math.log(3.0 / 2.0) + 2.5F * 1 * (float)Math.log(3.0 / 1.0) + 22 * 6.0F;
+    //System.out.println(innerProduct);    // 142.354736328125
+    assertEquals(4, topDocs.scoreDocs[0].score, 0.0005);
 
     // title: foo, body:foo
     assertEquals("foo", searcher.doc(topDocs.scoreDocs[1].doc).get("body"));
-    expectedScore = 3 * 1 + 4 * 0 + 1.5F * (float)Math.log(3.0 / 2.0) + 2.5F * 0 * (float)Math.log(3.0 / 1.0) + 12 * 6.0F;
-    assertEquals(expectedScore, topDocs.scoreDocs[1].score, 0.0005);
+    innerProduct = 3 * 1 + 4 * 0 + 1.5F * (float)Math.log(3.0 / 2.0) + 2.5F * 0 * (float)Math.log(3.0 / 1.0) + 12 * 6.0F;
+    //System.out.println(innerProduct);    // 75.60820007324219
+    assertEquals(2, topDocs.scoreDocs[1].score, 0.0005);
 
     IOUtils.close(reader, w, dir);
   }

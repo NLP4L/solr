@@ -17,10 +17,7 @@
 package org.nlp4l.solr.ltr;
 
 import org.apache.lucene.analysis.Analyzer;
-import org.apache.lucene.analysis.TokenStream;
-import org.apache.lucene.analysis.tokenattributes.CharTermAttribute;
 import org.apache.lucene.index.IndexReaderContext;
-import org.apache.lucene.index.Term;
 import org.apache.lucene.search.Query;
 import org.apache.solr.common.params.SolrParams;
 import org.apache.solr.common.util.NamedList;
@@ -30,14 +27,13 @@ import org.apache.solr.search.QParser;
 import org.apache.solr.search.QParserPlugin;
 import org.apache.solr.search.SyntaxError;
 
-import java.io.IOException;
-import java.lang.reflect.Constructor;
 import java.util.ArrayList;
 import java.util.List;
 
-public class LinearWeightQParserPlugin extends QParserPlugin {
+public class PRankQParserPlugin extends QParserPlugin {
   List<FieldFeatureExtractorFactory> featuresSpec = new ArrayList<FieldFeatureExtractorFactory>();
   List<Float> weights = new ArrayList<Float>();
+  List<Float> bs = new ArrayList<Float>();
 
   @Override
   public void init(NamedList args){
@@ -46,7 +42,7 @@ public class LinearWeightQParserPlugin extends QParserPlugin {
     String modelFileName = (String)settings.get("model");
 
     FeaturesConfigReader fcReader = new FeaturesConfigReader(featuresFileName);
-    LinearWeightModelReader mcReader = new LinearWeightModelReader(modelFileName);
+    PRankModelReader mcReader = new PRankModelReader(modelFileName);
 
     LinearWeightModelReader.WeightDesc[] weightDescs = mcReader.getWeightDescs();
 
@@ -59,16 +55,21 @@ public class LinearWeightQParserPlugin extends QParserPlugin {
       FieldFeatureExtractorFactory dfeFactory = FeaturesConfigReader.loadFactory(featureDesc);
       featuresSpec.add(dfeFactory);
     }
+
+    float[] bbs = mcReader.getBs();
+    for(float b: bbs){
+      bs.add(b);
+    }
   }
 
   @Override
   public QParser createParser(String query, SolrParams localParams, SolrParams params, SolrQueryRequest req) {
-    return new LinearWeightQParser(query, localParams, params, req);
+    return new PRankQParser(query, localParams, params, req);
   }
 
-  public class LinearWeightQParser extends QParser {
+  public class PRankQParser extends QParser {
 
-    public LinearWeightQParser(String query, SolrParams localParams, SolrParams params, SolrQueryRequest req) {
+    public PRankQParser(String query, SolrParams localParams, SolrParams params, SolrQueryRequest req) {
       super(query, localParams, params, req);
     }
 
@@ -82,7 +83,7 @@ public class LinearWeightQParserPlugin extends QParserPlugin {
         factory.init(context, FieldFeatureExtractorFactory.terms(fieldName, qstr, analyzer));
       }
 
-      return new LinearWeightQuery(featuresSpec, weights);
+      return new PRankQuery(featuresSpec, weights, bs);
     }
   }
 }

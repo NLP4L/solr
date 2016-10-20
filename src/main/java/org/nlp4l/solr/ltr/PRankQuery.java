@@ -16,32 +16,83 @@
 
 package org.nlp4l.solr.ltr;
 
-import org.apache.lucene.index.*;
+import org.apache.lucene.index.LeafReaderContext;
+import org.apache.lucene.index.Term;
 import org.apache.lucene.search.*;
 
 import java.io.IOException;
 import java.util.*;
 
-public final class LinearWeightQuery extends AbstractLTRQuery {
+public class PRankQuery extends AbstractLTRQuery {
 
-  public LinearWeightQuery(List<FieldFeatureExtractorFactory> featuresSpec, List<Float> weights){
+  private final List<Float> bs;
+
+  public PRankQuery(List<FieldFeatureExtractorFactory> featuresSpec, List<Float> weights, List<Float> bs){
     super(featuresSpec, weights);
+    this.bs = bs;
   }
 
   @Override
   public Weight createWeight(IndexSearcher searcher, boolean needsScores) throws IOException {
-    return new LinearWeight(this);
+    return new PRankWeight(this);
+  }
+
+  @Override
+  public String toString(String ignored) {
+    StringBuilder sb = new StringBuilder(super.toString(ignored));
+    sb.append(", bs=[");
+    if(bs != null){
+      for(int i = 0; i < bs.size(); i++){
+        if(i > 0) sb.append(',');
+        sb.append(bs.get(i).toString());
+      }
+    }
+    sb.append(']');
+    return sb.toString();
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if(!super.equals(o)) return false;
+    if(o == null || !(o instanceof PRankQuery)) return false;
+    PRankQuery other = (PRankQuery)o;
+    return equalsBs(other.bs);
   }
 
   @Override
   public int hashCode() {
-    final int prime = 61;
-    return super.hashCode(prime);
+    final int prime = 71;
+    int result = super.hashCode(prime);
+    if(bs != null){
+      for(Float b: bs){
+        result = prime * result + b.hashCode();
+      }
+    }
+
+    return result;
   }
 
-  public final class LinearWeight extends Weight {
+  protected boolean equalsBs(List<Float> oBs){
+    if(this.bs == null){
+      return oBs == null;
+    }
+    else{
+      if(oBs == null) return false;
+      else{
+        if(this.bs.size() != oBs.size()) return false;
+        else{
+          for(int i = 0; i < this.bs.size(); i++){
+            if(!this.bs.get(i).equals(oBs.get(i))) return false;
+          }
+          return true;
+        }
+      }
+    }
+  }
 
-    protected LinearWeight(Query query) {
+  public final class PRankWeight extends Weight {
+
+    protected PRankWeight(Query query){
       super(query);
     }
 
@@ -63,11 +114,21 @@ public final class LinearWeightQuery extends AbstractLTRQuery {
 
     @Override
     public Explanation explain(LeafReaderContext leafReaderContext, int doc) throws IOException {
-      LinearWeightScorer scorer = (LinearWeightScorer)scorer(leafReaderContext);
+      // TODO: use PRankScorer
+      PRankScorer scorer = (PRankScorer)scorer(leafReaderContext);
       if(scorer != null){
         int newDoc = scorer.iterator().advance(doc);
         if (newDoc == doc) {
-          return Explanation.match(scorer.score(), "sum of:", scorer.subExplanations(doc));
+          StringBuilder sb = new StringBuilder();
+          sb.append("bs(");
+          for(int i = 0; i < bs.size(); i++){
+            if(i > 0) sb.append(',');
+            sb.append(bs.get(i));
+          }
+          sb.append(')');
+          return Explanation.match(scorer.score(),
+                  String.format("is the index of %s > %f sum of:", sb.toString(), scorer.innerProduct()),
+                  scorer.subExplanations(doc));
         }
       }
       return Explanation.noMatch("no matching terms");
@@ -95,7 +156,7 @@ public final class LinearWeightQuery extends AbstractLTRQuery {
 
       if(allDocs.size() == 0) return null;
       else{
-        return new LinearWeightScorer(this, spec, weights, getIterator(allDocs));
+        return new PRankScorer(this, spec, weights, bs, getIterator(allDocs));
       }
     }
   }

@@ -17,23 +17,30 @@
 package org.nlp4l.solr.ltr;
 
 import org.apache.lucene.search.DocIdSetIterator;
-import org.apache.lucene.search.Explanation;
-import org.apache.lucene.search.Scorer;
 import org.apache.lucene.search.Weight;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 
-public class LinearWeightScorer extends AbstractLinearWeightScorer {
+public class PRankScorer extends AbstractLinearWeightScorer {
 
-  public LinearWeightScorer(Weight luceneWeight, List<FieldFeatureExtractor[]> featuresSpec,
-                            List<Float> weights, DocIdSetIterator iterator) {
+  private final List<Float> bs;
+
+  public PRankScorer(Weight luceneWeight, List<FieldFeatureExtractor[]> featuresSpec,
+                     List<Float> weights, List<Float> bs, DocIdSetIterator iterator) {
     super(luceneWeight, featuresSpec, weights, iterator);
+    this.bs = bs;
   }
 
   @Override
   public float score() throws IOException {
-    return innerProduct();
+    final int BASE = 0;    // it may be 1 in the future
+    final float s = innerProduct();
+
+    for(int i = 0; i < bs.size(); i++){
+      if(s - bs.get(i) < 0) return i + BASE;
+    }
+
+    return bs.size() + BASE;
   }
 }

@@ -17,18 +17,23 @@
 package org.nlp4l.solr.ltr;
 
 import org.junit.Test;
-import static org.junit.Assert.*;
 
-public class ModelConfigReaderTest {
+import static org.junit.Assert.assertEquals;
+
+public class PRankModelReaderTest {
 
   @Test
   public void testLoader() throws Exception {
-    ModelConfigReader mcReader = new ModelConfigReader("linearweight_model.conf");
-    ModelConfigReader.WeightDesc[] weightDescs = mcReader.getWeightDescs();
-    assertEquals(4, weightDescs.length);
+    PRankModelReader mcReader = new PRankModelReader("prank_model.conf");
+    LinearWeightModelReader.WeightDesc[] weightDescs = mcReader.getWeightDescs();
+    assertEquals(2, weightDescs.length);
     assertEquals("name=TF in title,weight=3.0", weightDescs[0].toString());
     assertEquals("name=TF in body,weight=4.0", weightDescs[1].toString());
-    assertEquals("name=IDF in title,weight=5.0", weightDescs[2].toString());
-    assertEquals("name=IDF in body,weight=2.0", weightDescs[3].toString());
+
+    float[] bs = mcReader.getBs();
+    assertEquals(3, bs.length);
+    assertEquals(5.0F, bs[0], 0.0001F);
+    assertEquals(10.0F, bs[1], 0.0001F);
+    assertEquals(13.0F, bs[2], 0.0001F);
   }
 }
