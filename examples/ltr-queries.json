@@ -1,10 +1,10 @@
-data: {
-  idField: "url",
-  queries: [
+{
+  "idField": "url",
+  "queries": [
     {
-      qid: 101,
-      query: "サラリーマン",
-      docs: [
+      "qid": 101,
+      "query": "サラリーマン",
+      "docs": [
         "http://news.livedoor.com/article/detail/5667825/",
         "http://news.livedoor.com/article/detail/4916133/",
         "http://news.livedoor.com/article/detail/5962222/",
@@ -18,9 +18,9 @@ data: {
       ]
     },
     {
-      qid: 102,
-      query: "携帯電話",
-      docs: [
+      "qid": 102,
+      "query": "携帯電話",
+      "docs": [
         "http://news.livedoor.com/article/detail/6895739/",
         "http://news.livedoor.com/article/detail/5560837/",
         "http://news.livedoor.com/article/detail/5215801/",
@@ -34,9 +34,9 @@ data: {
       ]
     },
     {
-      qid: 103,
-      query: "ラーメン",
-      docs: [
+      "qid": 103,
+      "query": "ラーメン",
+      "docs": [
         "http://news.livedoor.com/article/detail/5911453/",
         "http://news.livedoor.com/article/detail/6514350/",
         "http://news.livedoor.com/article/detail/6396990/",

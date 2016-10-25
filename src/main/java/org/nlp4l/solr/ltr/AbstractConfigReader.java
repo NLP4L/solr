@@ -29,14 +29,12 @@ public abstract class AbstractConfigReader {
 
   protected final Config config;
 
-  public AbstractConfigReader(SolrResourceLoader loader, String fileName, String rootName){
-    Config c = load(loader, fileName);
-    config = c.getConfig(rootName);
+  public AbstractConfigReader(SolrResourceLoader loader, String fileName){
+    config = load(loader, fileName);
   }
 
-  public AbstractConfigReader(String content, String rootName){
-    Config c = ConfigFactory.parseString(content);
-    config = c.getConfig(rootName);
+  public AbstractConfigReader(String content){
+    config = ConfigFactory.parseString(content);
   }
 
   public static Config load(SolrResourceLoader loader, String fileName){

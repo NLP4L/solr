@@ -28,7 +28,7 @@ public class TrainingDataReader extends AbstractConfigReader {
   private final int totalDocs;
 
   public TrainingDataReader(String content) {
-    super(content, "data");
+    super(content);
     idField = config.getString("idField");
     List<? extends Config> queriesData = config.getConfigList("queries");
     queryDataDescs = new QueryDataDesc[queriesData.size()];

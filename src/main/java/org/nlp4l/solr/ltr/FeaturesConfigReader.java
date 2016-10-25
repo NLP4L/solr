@@ -34,7 +34,7 @@ public class FeaturesConfigReader extends  AbstractConfigReader {
   }
 
   public FeaturesConfigReader(SolrResourceLoader loader, String fileName){
-    super(loader, fileName, "conf");
+    super(loader, fileName);
     List<? extends Config> featuresConfig = config.getConfigList("features");
     featureDescs = new FeatureDesc[featuresConfig.size()];
     fdMap = new HashMap<String, FeatureDesc>();
