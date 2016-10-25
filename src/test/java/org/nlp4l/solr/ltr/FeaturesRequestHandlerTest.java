@@ -67,23 +67,23 @@ public class FeaturesRequestHandlerTest extends SolrTestCaseJ4 {
     FeaturesRequestHandler handler = new FeaturesRequestHandler();
     SimpleOrderedMap<Object> results = new SimpleOrderedMap<Object>();
     handler.handleExtract(req,
-            makeStream("data: {\n" +
-                    "  idField: \"id\",\n" +
-                    "  queries: [\n" +
+            makeStream("{\n" +
+                    "  \"idField\": \"id\",\n" +
+                    "  \"queries\": [\n" +
                     "    {\n" +
-                    "      qid: 101,\n" +
-                    "      query: \"this\",\n" +
-                    "      docs: [ \"1\" ]\n" +
+                    "      \"qid\": 101,\n" +
+                    "      \"query\": \"this\",\n" +
+                    "      \"docs\": [ \"1\" ]\n" +
                     "    },\n" +
                     "    {\n" +
-                    "      qid: 102,\n" +
-                    "      query: \"title\",\n" +
-                    "      docs: [ \"1\" ]\n" +
+                    "      \"qid\": 102,\n" +
+                    "      \"query\": \"title\",\n" +
+                    "      \"docs\": [ \"1\" ]\n" +
                     "    },\n" +
                     "    {\n" +
-                    "      qid: 103,\n" +
-                    "      query: \"body\",\n" +
-                    "      docs: [ \"1\" ]\n" +
+                    "      \"qid\": 103,\n" +
+                    "      \"query\": \"body\",\n" +
+                    "      \"docs\": [ \"1\" ]\n" +
                     "    }\n" +
                     "  ]\n" +
                     "}\n"), results);

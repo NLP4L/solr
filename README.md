@@ -56,27 +56,27 @@ FeaturesRequestHandler needs to be registered in solrconfig.xml.
 Where, ltr_features.conf is provided in the same directory as the directory where solrconfig.xml exists and has the structure of this file looks like below:
 
 ```
-conf: {
-  features: [
+{
+  "features": [
     {
-      name: "TF in title",
-      class: "org.nlp4l.solr.ltr.FieldFeatureTFExtractorFactory",
-      params: { field: "title" }
+      "name": "TF in title",
+      "class": "org.nlp4l.solr.ltr.FieldFeatureTFExtractorFactory",
+      "params": { "field": "title" }
     },
     {
-      name: "TF in body",
-      class: "org.nlp4l.solr.ltr.FieldFeatureTFExtractorFactory",
-      params: { field: "body" }
+      "name": "TF in body",
+      "class": "org.nlp4l.solr.ltr.FieldFeatureTFExtractorFactory",
+      "params": { "field": "body" }
     },
     {
-      name: "IDF in title",
-      class: "org.nlp4l.solr.ltr.FieldFeatureIDFExtractorFactory",
-      params: { field: "title" }
+      "name": "IDF in title",
+      "class": "org.nlp4l.solr.ltr.FieldFeatureIDFExtractorFactory",
+      "params": { "field": "title" }
     },
     {
-      name: "IDF in body",
-      class: "org.nlp4l.solr.ltr.FieldFeatureIDFExtractorFactory",
-      params: { field: "body" }
+      "name": "IDF in body",
+      "class": "org.nlp4l.solr.ltr.FieldFeatureIDFExtractorFactory",
+      "params": { "field": "body" }
     }
   ]
 }
@@ -124,11 +124,26 @@ http://localhost:8983/solr/collection1/features?command=download&procId=<proc id
 
 ## LinearWeightQParserPlugin
 
+When you use RankingSVM, use LinearWeightQParserPlugin.
+
 ```
 <queryParser name="linearWeight" class="org.nlp4l.solr.ltr.LinearWeightQParserPlugin">
   <lst name="settings">
     <str name="features">collection1/conf/ltr_features.conf</str>
     <str name="model">collection1/conf/linearweight_model.conf</str>
+  </lst>
+</queryParser>
+```
+
+## PRankQParserPlugin
+
+When you use PRank, use PRankQParserPlugin.
+
+```
+<queryParser name="prank" class="org.nlp4l.solr.ltr.PRankQParserPlugin">
+  <lst name="settings">
+    <str name="features">collection1/conf/ltr_features.conf</str>
+    <str name="model">collection1/conf/prank_model.conf</str>
   </lst>
 </queryParser>
 ```

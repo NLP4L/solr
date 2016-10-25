@@ -21,22 +21,22 @@ import static org.junit.Assert.*;
 
 public class TrainingDataReaderTest {
 
-  private final String JSON_DATA ="data: {\n" +
-          "  idField: \"url\",\n" +
-          "  queries: [\n" +
+  private final String JSON_DATA ="{\n" +
+          "  \"idField\": \"url\",\n" +
+          "  \"queries\": [\n" +
           "    {\n" +
-          "      qid: 101,\n" +
-          "      query: \"サラリーマン\",\n" +
-          "      docs: [\n" +
+          "      \"qid\": 101,\n" +
+          "      \"query\": \"サラリーマン\",\n" +
+          "      \"docs\": [\n" +
           "        \"url1\",\n" +
           "        \"url2\",\n" +
           "        \"url3\"\n" +
           "      ]\n" +
           "    },\n" +
           "    {\n" +
-          "      qid: 102,\n" +
-          "      query: \"携帯電話\",\n" +
-          "      docs: [\n" +
+          "      \"qid\": 102,\n" +
+          "      \"query\": \"携帯電話\",\n" +
+          "      \"docs\": [\n" +
           "        \"url4\",\n" +
           "        \"url5\",\n" +
           "        \"url6\",\n" +
@@ -44,9 +44,9 @@ public class TrainingDataReaderTest {
           "      ]\n" +
           "    },\n" +
           "    {\n" +
-          "      qid: 103,\n" +
-          "      query: \"ラーメン\",\n" +
-          "      docs: [\n" +
+          "      \"qid\": 103,\n" +
+          "      \"query\": \"ラーメン\",\n" +
+          "      \"docs\": [\n" +
           "        \"url8\",\n" +
           "        \"url9\",\n" +
           "        \"url10\"\n" +
