@@ -147,3 +147,17 @@ When you use PRank, use PRankQParserPlugin.
   </lst>
 </queryParser>
 ```
+
+# How to execute rerank using LTR model
+
+## use LinearWeightQParserPlugin (RankingSVM, etc.)
+
+```
+http://localhost:8983/solr/collection1/select?indent=on&q=your_query&rq={!rerank reRankQuery=$rqq}&rqq={!linearWeight}your_query&debugQuery=on
+```
+
+## use PRankQParserPlugin (RankingSVM, etc.)
+
+```
+http://localhost:8983/solr/collection1/select?indent=on&q=your_query&rq={!rerank reRankQuery=$rqq}&rqq={!prank}your_query&debugQuery=on
+```
