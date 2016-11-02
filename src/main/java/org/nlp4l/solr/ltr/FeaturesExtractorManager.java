@@ -71,7 +71,7 @@ public class FeaturesExtractorManager {
       try{
         r = new FileReader(featuresFile);
         Config json = ConfigFactory.parseReader(new FileReader(featuresFile));
-        result.add("data", parseData(json.getConfig("data")));
+        result.add("data", parseData(json));
         return result;
       } catch (FileNotFoundException e) {
         throw new RuntimeException(e);

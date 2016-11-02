@@ -62,7 +62,7 @@ public class FeaturesExtractor implements Callable<Integer> {
     List<Explanation> _debugExpls = null;
     try {
       pw = new PrintWriter(featuresFile);
-      pw.println("data: {");
+      pw.println("{");
       pw.print("  feature: [");
       int cntFE = 0;
       for(FieldFeatureExtractorFactory factory: featuresSpec){
