@@ -30,7 +30,7 @@ public class LinearWeightModelReader extends AbstractConfigReader {
   }
 
   public LinearWeightModelReader(SolrResourceLoader loader, String fileName){
-    super(loader, fileName);
+    super(loader, fileName, "model");
     List<? extends Config> weightsConfig = config.getConfigList("weights");
     weightDescs = new WeightDesc[weightsConfig.size()];
     int i = 0;

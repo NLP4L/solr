@@ -30,7 +30,13 @@ public abstract class AbstractConfigReader {
   protected final Config config;
 
   public AbstractConfigReader(SolrResourceLoader loader, String fileName){
-    config = load(loader, fileName);
+    this(loader, fileName, null);
+  }
+
+  public AbstractConfigReader(SolrResourceLoader loader, String fileName, String path){
+    Config c = load(loader, fileName);
+    if(path == null) config = c;
+    else config = c.getConfig(path);
   }
 
   public AbstractConfigReader(String content){
