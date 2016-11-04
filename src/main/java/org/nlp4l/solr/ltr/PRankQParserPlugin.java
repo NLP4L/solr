@@ -27,6 +27,7 @@ import org.apache.solr.search.QParser;
 import org.apache.solr.search.QParserPlugin;
 import org.apache.solr.search.SyntaxError;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -41,24 +42,34 @@ public class PRankQParserPlugin extends QParserPlugin {
     String featuresFileName = (String)settings.get("features");
     String modelFileName = (String)settings.get("model");
 
-    FeaturesConfigReader fcReader = new FeaturesConfigReader(featuresFileName);
-    PRankModelReader mcReader = new PRankModelReader(modelFileName);
-
-    LinearWeightModelReader.WeightDesc[] weightDescs = mcReader.getWeightDescs();
-
-    for(LinearWeightModelReader.WeightDesc weightDesc: weightDescs){
-      weights.add(weightDesc.weight);
-      FeaturesConfigReader.FeatureDesc featureDesc = fcReader.getFeatureDesc(weightDesc.name);
-      if(featureDesc == null){
-        throw new IllegalArgumentException("no such feature " + weightDesc.name + " in the feature conf file");
-      }
-      FieldFeatureExtractorFactory dfeFactory = FeaturesConfigReader.loadFactory(featureDesc);
-      featuresSpec.add(dfeFactory);
+    FeaturesConfigReader fcReader = null;
+    try {
+      fcReader = new FeaturesConfigReader(featuresFileName);
+    } catch (IOException e) {
+      e.printStackTrace();
     }
 
-    float[] bbs = mcReader.getBs();
-    for(float b: bbs){
-      bs.add(b);
+    try {
+      PRankModelReader mcReader = new PRankModelReader(modelFileName);
+
+      LinearWeightModelReader.WeightDesc[] weightDescs = mcReader.getWeightDescs();
+
+      for(LinearWeightModelReader.WeightDesc weightDesc: weightDescs){
+        weights.add(weightDesc.weight);
+        FeaturesConfigReader.FeatureDesc featureDesc = fcReader.getFeatureDesc(weightDesc.name);
+        if(featureDesc == null){
+          throw new IllegalArgumentException("no such feature " + weightDesc.name + " in the feature conf file");
+        }
+        FieldFeatureExtractorFactory dfeFactory = FeaturesConfigReader.loadFactory(featureDesc);
+        featuresSpec.add(dfeFactory);
+      }
+
+      float[] bbs = mcReader.getBs();
+      for(float b: bbs){
+        bs.add(b);
+      }
+    } catch (IOException ignored) {
+      // TODO: log warning...
     }
   }
 

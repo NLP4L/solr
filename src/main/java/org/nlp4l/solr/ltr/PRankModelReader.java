@@ -18,17 +18,18 @@ package org.nlp4l.solr.ltr;
 
 import org.apache.solr.core.SolrResourceLoader;
 
+import java.io.IOException;
 import java.util.List;
 
 public class PRankModelReader extends LinearWeightModelReader {
 
   protected final float[] bs;
 
-  public PRankModelReader(String fileName){
+  public PRankModelReader(String fileName) throws IOException {
     this(null, fileName);
   }
 
-  public PRankModelReader(SolrResourceLoader loader, String fileName){
+  public PRankModelReader(SolrResourceLoader loader, String fileName) throws IOException {
     super(loader, fileName);
     List<Double> bbs = config.getDoubleList("bs");
     bs = new float[bbs.size()];

@@ -45,19 +45,29 @@ public class LinearWeightQParserPlugin extends QParserPlugin {
     String featuresFileName = (String)settings.get("features");
     String modelFileName = (String)settings.get("model");
 
-    FeaturesConfigReader fcReader = new FeaturesConfigReader(featuresFileName);
-    LinearWeightModelReader mcReader = new LinearWeightModelReader(modelFileName);
+    FeaturesConfigReader fcReader = null;
+    try {
+      fcReader = new FeaturesConfigReader(featuresFileName);
+    } catch (IOException e) {
+      throw new RuntimeException(e);
+    }
 
-    LinearWeightModelReader.WeightDesc[] weightDescs = mcReader.getWeightDescs();
+    try {
+      LinearWeightModelReader mcReader = new LinearWeightModelReader(modelFileName);
 
-    for(LinearWeightModelReader.WeightDesc weightDesc: weightDescs){
-      weights.add(weightDesc.weight);
-      FeaturesConfigReader.FeatureDesc featureDesc = fcReader.getFeatureDesc(weightDesc.name);
-      if(featureDesc == null){
-        throw new IllegalArgumentException("no such feature " + weightDesc.name + " in the feature conf file");
+      LinearWeightModelReader.WeightDesc[] weightDescs = mcReader.getWeightDescs();
+
+      for(LinearWeightModelReader.WeightDesc weightDesc: weightDescs){
+        weights.add(weightDesc.weight);
+        FeaturesConfigReader.FeatureDesc featureDesc = fcReader.getFeatureDesc(weightDesc.name);
+        if(featureDesc == null){
+          throw new IllegalArgumentException("no such feature " + weightDesc.name + " in the feature conf file");
+        }
+        FieldFeatureExtractorFactory dfeFactory = FeaturesConfigReader.loadFactory(featureDesc);
+        featuresSpec.add(dfeFactory);
       }
-      FieldFeatureExtractorFactory dfeFactory = FeaturesConfigReader.loadFactory(featureDesc);
-      featuresSpec.add(dfeFactory);
+    } catch (IOException ignored) {
+      // TODO: log warning...
     }
   }
 

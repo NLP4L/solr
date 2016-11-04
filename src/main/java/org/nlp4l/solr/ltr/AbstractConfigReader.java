@@ -20,7 +20,9 @@ import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import org.apache.lucene.util.IOUtils;
 import org.apache.solr.core.SolrResourceLoader;
+import org.apache.solr.core.SolrResourceNotFoundException;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -29,11 +31,11 @@ public abstract class AbstractConfigReader {
 
   protected final Config config;
 
-  public AbstractConfigReader(SolrResourceLoader loader, String fileName){
+  public AbstractConfigReader(SolrResourceLoader loader, String fileName) throws IOException {
     this(loader, fileName, null);
   }
 
-  public AbstractConfigReader(SolrResourceLoader loader, String fileName, String path){
+  public AbstractConfigReader(SolrResourceLoader loader, String fileName, String path) throws IOException {
     Config c = load(loader, fileName);
     if(path == null) config = c;
     else config = c.getConfig(path);
@@ -43,15 +45,13 @@ public abstract class AbstractConfigReader {
     config = ConfigFactory.parseString(content);
   }
 
-  public static Config load(SolrResourceLoader loader, String fileName){
+  public static Config load(SolrResourceLoader loader, String fileName) throws IOException {
     if(loader == null)
       loader = new SolrResourceLoader();
     InputStream is = null;
     try {
       is = loader.openResource(fileName);
       return ConfigFactory.parseReader(new InputStreamReader(is));
-    } catch (IOException e) {
-      throw new RuntimeException(e);
     } finally {
       IOUtils.closeWhileHandlingException(is);
     }

@@ -19,17 +19,18 @@ package org.nlp4l.solr.ltr;
 import com.typesafe.config.Config;
 import org.apache.solr.core.SolrResourceLoader;
 
+import java.io.IOException;
 import java.util.List;
 
 public class LinearWeightModelReader extends AbstractConfigReader {
 
   protected final WeightDesc[] weightDescs;
 
-  public LinearWeightModelReader(String fileName){
+  public LinearWeightModelReader(String fileName) throws IOException {
     this(null, fileName);
   }
 
-  public LinearWeightModelReader(SolrResourceLoader loader, String fileName){
+  public LinearWeightModelReader(SolrResourceLoader loader, String fileName) throws IOException {
     super(loader, fileName, "model");
     List<? extends Config> weightsConfig = config.getConfigList("weights");
     weightDescs = new WeightDesc[weightsConfig.size()];
