@@ -77,6 +77,16 @@ Where, ltr_features.conf is provided in the same directory as the directory wher
       "name": "IDF in body",
       "class": "org.nlp4l.solr.ltr.FieldFeatureIDFExtractorFactory",
       "params": { "field": "body" }
+    },
+    {
+      "name": "TF*IDF in title",
+      "class": "org.nlp4l.solr.ltr.FieldFeatureTFIDFExtractorFactory",
+      "params": { "field": "title" }
+    },
+    {
+      "name": "TF*IDF in body",
+      "class": "org.nlp4l.solr.ltr.FieldFeatureTFIDFExtractorFactory",
+      "params": { "field": "body" }
     }
   ]
 }
