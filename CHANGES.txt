@@ -1,6 +1,6 @@
 NLP4L/solr change history
 
-==========  / YYYY-MM-DD ===================================
+========== 0.1-dev / YYYY-MM-DD ===================================
 
 Important Notice
 
@@ -25,7 +25,7 @@ Others
 
 Important Notice
 
-* Initial release
+* Initial release for Apache Solr 6.4.1
 
 New Features & Improvements
 
