@@ -65,11 +65,11 @@ mv build.sbt.temp build.sbt
 # commit the modification
 git add .
 git commit -m "prepare rel-${THIS_REL_NUM}"
-# git push --set-upstream origin "rel-${THIS_BRANCH_NUM}"
+git push --set-upstream origin "rel-${THIS_BRANCH_NUM}"
 
 # tag the commit point to rel-${THIS_REL_NUM}
 git tag -a "rel-${THIS_REL_NUM}" -m "release tag for ${THIS_REL_NUM}"
-# git push origin "rel-${THIS_REL_NUM}"
+git push origin "rel-${THIS_REL_NUM}"
 
 # merge the change to master
 git checkout master
@@ -110,7 +110,7 @@ mv build.sbt.temp build.sbt
 
 git add .
 git commit -m "prepare the next release ${NEXT_BRANCH_NUM}"
-# git push
+git push
 
 # prepare the next bug fix release on the release branch
 git checkout "rel-${THIS_BRANCH_NUM}"
@@ -148,7 +148,7 @@ mv build.sbt.temp build.sbt
 
 git add .
 git commit -m "prepare the next release ${NEXT_BUGFIX_NUM}"
-# git push
+git push
 
 echo -e "\\n\\n\\nThe rel-${THIS_REL_NUM} has been almost prepared. Please execute the following to finalize.\\n"
 echo "1. git checkout rel-${THIS_REL_NUM}"
