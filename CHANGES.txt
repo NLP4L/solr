@@ -1,5 +1,26 @@
 NLP4L/solr change history
 
+========== 0.1.1 / YYYY-MM-DD ===================================
+
+Important Notice
+
+New Features & Improvements
+
+Bug Fixes
+
+API Changes
+
+Javadoc Fixes
+
+Project environments
+
+Tests
+
+Deprecated/Deleted Features
+
+Others
+
+
 ========== 0.1.0 / 2017-03-28 ===================================
 
 Important Notice
