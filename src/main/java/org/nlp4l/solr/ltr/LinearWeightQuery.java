@@ -16,11 +16,19 @@
 
 package org.nlp4l.solr.ltr;
 
-import org.apache.lucene.index.*;
-import org.apache.lucene.search.*;
-
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
+import org.apache.lucene.index.LeafReaderContext;
+import org.apache.lucene.index.Term;
+import org.apache.lucene.search.Explanation;
+import org.apache.lucene.search.IndexSearcher;
+import org.apache.lucene.search.Query;
+import org.apache.lucene.search.Scorer;
+import org.apache.lucene.search.Weight;
 
 public final class LinearWeightQuery extends AbstractLTRQuery {
 
@@ -29,7 +37,7 @@ public final class LinearWeightQuery extends AbstractLTRQuery {
   }
 
   @Override
-  public Weight createWeight(IndexSearcher searcher, boolean needsScores) throws IOException {
+  public Weight createWeight(IndexSearcher searcher, boolean needsScores, float boost) throws IOException {
     return new LinearWeight(this);
   }
 
@@ -74,17 +82,6 @@ public final class LinearWeightQuery extends AbstractLTRQuery {
     }
 
     @Override
-    public float getValueForNormalization() throws IOException {
-      // nothing to do
-      return 1.0f;
-    }
-
-    @Override
-    public void normalize(float norm, float boost) {
-      // nothing to do
-    }
-
-    @Override
     public Scorer scorer(LeafReaderContext context) throws IOException {
       List<FieldFeatureExtractor[]> spec = new ArrayList<FieldFeatureExtractor[]>();
       Set<Integer> allDocs = new HashSet<Integer>();
@@ -97,6 +94,11 @@ public final class LinearWeightQuery extends AbstractLTRQuery {
       else{
         return new LinearWeightScorer(this, spec, weights, getIterator(allDocs));
       }
+    }
+
+    @Override
+    public boolean isCacheable(LeafReaderContext leafReaderContext) {
+      return false;
     }
   }
 }

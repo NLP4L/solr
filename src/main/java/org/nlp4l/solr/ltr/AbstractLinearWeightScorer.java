@@ -80,12 +80,6 @@ public abstract class AbstractLinearWeightScorer extends Scorer {
   }
 
   @Override
-  public int freq() throws IOException {
-    // TODO: implement
-    return 1;
-  }
-
-  @Override
   public DocIdSetIterator iterator() {
     return iterator;
   }
