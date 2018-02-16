@@ -10,7 +10,7 @@ lazy val root = (project in file(".")).
   settings(commonSettings: _*).
   settings(
     name := "NLP4L-solr",
-    version := "0.2-dev",
+    version := "0.2.0",
     parallelExecution := true
   )
 
